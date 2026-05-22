@@ -1,29 +1,52 @@
-# Note Generator
+# Oval Health
 
-## Clinical note template generator
+Fast clinical tools for real consultations.
 
-A lightweight in-browser app for generating structured clinical notes from clickable consultation templates.
+Oval Health is a static clinical workflow platform for clinicians. The V1 foundation focuses on clear structure, fast navigation, mobile-first access and room for future clinical tools.
 
-### Features
-- Template landing page
-- Mental State Examination (MSE) template
-- A&E chest pain consultation template
-- Clickable answers that generate structured clinical wording
-- Template-specific memory aids and reference prompts
-- Editable sections, answers and note wording
-- Instant note generation
-- Copy-to-clipboard output
-- Runs entirely in-browser
-- No backend required
+## Product Pillars
 
-## Deploying with GitHub Pages
-1. Open repository settings
-2. Go to Pages
-3. Under Build and deployment:
-   - Source → Deploy from a branch
-   - Branch → main
-   - Folder → /root
-4. Save
+- Structured notes for repeat clinical consultations
+- Patient information leaflets with consultation-ready QR codes
+- Clinical prompts, red flags and safety-netting language
+- Calculators and scores for common clinical workflows
 
-The site will then be available at:
-https://drnoorrai.github.io/note-generator/
+## Current V1 Areas
+
+- `index.html` — ecosystem hub
+- `about.html` — product and safety context
+- `notes/index.html` — structured documentation home
+- `leaflets/index.html` — trusted leaflet search with QR generation
+- `guides/index.html` — guides placeholder
+- `calculators/index.html` — calculators placeholder
+
+## Deployment
+
+The site is static HTML, CSS and JavaScript. It has no backend, authentication, database or build step.
+
+It can run locally by opening:
+
+```txt
+index.html
+```
+
+It can also be served by any static host, including GitHub Pages.
+
+## GitHub Pages
+
+1. Open repository settings.
+2. Go to Pages.
+3. Select deploy from a branch.
+4. Use branch `main`.
+5. Use folder `/root`.
+6. Save.
+
+The repository includes `CNAME` for:
+
+```txt
+ovalhealth.com
+```
+
+## Clinical Disclaimer
+
+Oval Health is an educational clinical workflow project. It does not replace professional judgement, local policy or current clinical guidance. Clinicians remain responsible for clinical decisions, documentation, prescribing, escalation and following local guidance.

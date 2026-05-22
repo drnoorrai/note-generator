@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0A7C6E">
+  <title>Oval Leaflets — Oval Health</title>
+  <meta name="description" content="Fast trusted patient leaflet search with QR codes.">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="../index.html" aria-label="Oval Health home">
+        <span class="brand-mark" aria-hidden="true">O</span>
+        <span>
+          <strong>Oval Leaflets</strong>
+          <span>Patient information QR</span>
+        </span>
+      </a>
+      <nav class="top-nav" aria-label="Primary navigation">
+        <a href="../index.html#tools">Tools</a>
+        <a href="../index.html#roadmap">Roadmap</a>
+        <a href="../about.html">About</a>
+      </nav>
+    </header>
+
+    <main class="content-page leaflet-app" data-leaflet-app>
+      <a class="button secondary" href="../index.html" style="width:max-content">Back to tools</a>
+      <section>
+        <p class="eyebrow">Oval Leaflets</p>
+        <h1>Patient information, ready to scan.</h1>
+        <p class="lead">Search trusted patient information and show a QR code during the consultation.</p>
+      </section>
+
+      <section class="leaflet-search" aria-labelledby="leaflet-search-title">
+        <h2 id="leaflet-search-title">Find a leaflet</h2>
+        <div class="search-row">
+          <label for="leaflet-search">Search by condition, college or specialty</label>
+          <input id="leaflet-search" type="search" inputmode="search" autocomplete="off" placeholder="Try depression, anxiety, endometriosis..." data-leaflet-search>
+        </div>
+        <div class="category-row" aria-label="Specialty categories">
+          <button class="category-chip active" type="button" data-specialty="All">All</button>
+          <button class="category-chip" type="button" data-specialty="Mental Health">Mental Health</button>
+          <button class="category-chip" type="button" data-specialty="Women's Health">Women's Health</button>
+        </div>
+      </section>
+
+      <section data-results-view aria-labelledby="results-title">
+        <div class="section-head">
+          <h2 id="results-title">Results</h2>
+        </div>
+        <div class="results-list" data-results-list></div>
+      </section>
+
+      <section class="qr-panel" data-qr-view aria-hidden="true" aria-labelledby="qr-title">
+        <button class="button secondary" type="button" data-back-results>Back to results</button>
+        <div class="leaflet-view">
+          <p class="eyebrow" data-qr-meta></p>
+          <h2 id="qr-title" data-qr-title></h2>
+          <div class="qr-frame" data-qr-code aria-label="QR code"></div>
+          <a class="qr-url" href="#" target="_blank" rel="noopener" data-qr-url></a>
+        </div>
+      </section>
+
+      <aside class="notice">
+        <p><strong>Tip:</strong> Add to your home screen for instant access.</p>
+      </aside>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-row">
+        <p>Oval Health is an educational clinical workflow project. It does not replace professional judgement, local policy or current clinical guidance.</p>
+        <p>&copy; <span data-current-year></span> Oval Health</p>
+      </div>
+    </footer>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="../assets/app.js"></script>
+</body>
+</html>
