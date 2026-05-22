@@ -4,126 +4,59 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Clinical Note Template Generator</title>
-  <style>
-    *{box-sizing:border-box}
-    :root{--ink:#111827;--muted:#64748b;--line:#d7dee8;--panel:#fff;--soft:#f8fafc;--blue:#0f4c81;--teal:#0f766e;--amber:#92400e;--red:#991b1b;--green:#166534;--shadow:0 1px 3px #0001}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f5f7fb;color:var(--ink)}
-    .wrap{max-width:1440px;margin:auto;padding:20px}
-    .hero,.card,.panel,.navPanel{background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
-    .hero{padding:22px;margin-bottom:16px}
-    .eyebrow{text-transform:uppercase;color:var(--muted);letter-spacing:.08em;font-size:12px;font-weight:800}
-    h1{margin:.25rem 0 .35rem;font-size:clamp(28px,4vw,42px);line-height:1.08}
-    h2{margin:0 0 12px;font-size:20px}
-    h3{margin:0 0 8px;font-size:16px}
-    .muted{color:var(--muted)}
-    .grid{display:grid;grid-template-columns:220px minmax(0,1fr) 440px;gap:16px;align-items:start}
-    .navPanel,.sticky{position:sticky;top:16px}
-    .sticky{max-height:calc(100vh - 32px);overflow:auto;padding-bottom:2px}
-    .navPanel{padding:12px}
-    .navTitle{font-weight:850;margin:2px 0 10px}
-    .navBtn{width:100%;border:0;background:transparent;color:#334155;text-align:left;border-radius:8px;padding:8px 9px;cursor:pointer;display:flex;gap:8px;align-items:center;justify-content:space-between}
-    .navBtn:hover,.navBtn.active{background:#eaf4f3;color:#0f4c81}
-    .count{font-size:12px;color:#475569;background:#e2e8f0;border-radius:999px;padding:2px 7px}
-    .card{padding:18px;margin-bottom:14px}
-    .sectionHead{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
-    .sectionTools{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .field{margin:16px 0}
-    .label{font-size:14px;font-weight:850;color:#334155;margin-bottom:8px}
-    .chips{display:flex;flex-wrap:wrap;gap:8px}
-    .chip{border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:999px;padding:8px 12px;cursor:pointer;font-size:14px}
-    .chip.active{background:#0f172a;color:white;border-color:#0f172a}
-    textarea,input,select{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10px 11px;font:inherit;background:white}
-    textarea{min-height:76px}
-    details{margin-top:8px;background:var(--soft);border:1px solid #e2e8f0;border-radius:8px;padding:10px;color:#475569;font-size:14px}
-    summary{cursor:pointer;font-weight:850;color:#334155}
-    .help,.reference,.promptBox{background:#f1f5f9;border-radius:8px;padding:10px;color:#475569;font-size:14px;margin-top:8px}
-    .reference{border-left:4px solid var(--teal)}
-    .contentBlock{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin:8px 0;padding:10px;color:#475569;font-size:14px}
-    .contentBlock.clinical{border-left:4px solid var(--blue)}
-    .contentBlock.interview{border-left:4px solid var(--amber)}
-    .contentBlock.referenceBlock{border-left:4px solid var(--teal)}
-    .contentBlock summary{display:flex;gap:8px;align-items:center}
-    .blockEditor{border:1px solid #dbe3ee;border-radius:8px;background:#fff;padding:10px;margin-top:8px}
-    .blockList{display:grid;gap:10px}
-    .optionWordings{display:grid;gap:8px}
-    .optionWording{display:grid;grid-template-columns:minmax(120px,180px) 1fr;gap:8px;align-items:start}
-    .optionName{font-size:13px;font-weight:850;color:#334155;padding-top:9px}
-    .flagRow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-    .flag{font-size:11px;font-weight:800;border-radius:999px;padding:3px 7px;background:#e2e8f0;color:#334155;text-transform:uppercase}
-    .flag.risk{background:#fee2e2;color:#991b1b}.flag.organic{background:#fef3c7;color:#92400e}.flag.mania{background:#dbeafe;color:#1d4ed8}.flag.psychosis{background:#ede9fe;color:#6d28d9}.flag.capacity{background:#dcfce7;color:#166534}
-    .output{height:38vh;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:1.5;background:#f8fafc}
-    .actions,.row{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap}
-    .btn{border:0;background:#0f172a;color:white;border-radius:8px;padding:10px 13px;font-weight:850;cursor:pointer}
-    .btn.secondary{background:white;color:#0f172a;border:1px solid #cbd5e1}
-    .btn.danger{background:var(--red)}
-    .btn.small{padding:6px 9px;font-size:12px;border-radius:7px}
-    .btn.teal{background:var(--teal)}
-    .btn:disabled{opacity:.45;cursor:not-allowed}
-    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
-    .toggle{display:flex;align-items:center;gap:7px;font-size:14px;color:#334155}
-    .editbar{display:none;margin-bottom:16px}.editbar.on{display:block}
-    .panel{padding:16px;border-color:#bfdbfe;background:#eff6ff}
-    .editTools{display:none;margin-top:10px;padding:12px;border-radius:8px;background:#f8fafc;border:1px dashed #cbd5e1}
-    .editing .editTools{display:block}
-    .editGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .editGrid .wide{grid-column:1/-1}
-    .pill{display:inline-block;background:#dbeafe;color:#1e3a8a;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:850}
-    .suggestion{border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-top:10px;background:#fff}
-    .noteTools{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
-    .inlineAdd{display:none;gap:8px;margin-top:8px}
-    .editing .inlineAdd{display:flex}
-    .toast{min-height:22px;color:#166534;font-weight:800;font-size:13px}
-    .templateHub{margin-bottom:16px}
-    .templateHubHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
-    .templateHubHeader h2{margin:0}
-    .templateGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    .templateCard{border:1px solid var(--line);background:#fff;border-radius:8px;padding:14px;text-align:left;cursor:pointer;box-shadow:var(--shadow);display:grid;gap:8px}
-    .templateCard:hover,.templateCard.active{border-color:#0f4c81;background:#f8fbff}
-    .templateCard.active{box-shadow:0 0 0 3px #bfdbfe}
-    .templateCardTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:900;color:#0f172a}
-    .templateCard p{margin:0;color:#64748b;font-size:14px;line-height:1.45}
-    .templateMeta{display:flex;gap:6px;flex-wrap:wrap}
-    .savedFlash{box-shadow:0 0 0 3px #86efac;background:#166534!important;color:#fff!important}
-    body:not(.studyMode) .contentBlock,body:not(.studyMode) .quickRefCard{display:none}
-    .guideIntro{margin:0 0 10px;font-size:13px;color:#64748b}
-    .guide{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-top:8px;padding:0;color:#334155}
-    .guide summary{padding:10px 11px;display:flex;gap:8px;align-items:center}
-    .guideBody{border-top:1px solid #e2e8f0;padding:10px 11px}
-    .guide ul{margin:8px 0 10px;padding-left:18px}
-    .guide li{margin:4px 0}
-    .guideBlock{margin-top:10px}
-    .guideBlockTitle{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:850;margin-bottom:5px}
-    .guidePhrase{border-left:3px solid #cbd5e1;background:#fff;border-radius:6px;padding:8px 9px;margin-top:6px;font-size:13px;color:#334155}
-    .guideMeta{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-    .guideFlow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
-    .guideFlow span{background:#eaf4f3;border:1px solid #b7d8d3;border-radius:7px;padding:7px 6px;text-align:center;font-size:12px;font-weight:800;color:#0f4c81}
-    .guideActions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:8px}
-    .guideSource{font-size:12px;color:#64748b}
-    .guideSource a{color:#0f4c81}
-    .guideAdded{background:#dcfce7;color:#166534;border-radius:999px;padding:3px 7px;font-size:11px;font-weight:850}
-    @media(max-width:1120px){.grid{grid-template-columns:1fr}.navPanel,.sticky{position:static}.sticky{max-height:none;overflow:visible}.output{height:42vh}.navPanel{display:none}}
-    @media(max-width:720px){.wrap{padding:12px}.hero,.card{border-radius:8px;padding:14px}.editGrid{grid-template-columns:1fr}.sectionHead{display:block}.sectionTools{justify-content:flex-start}.btn{padding:9px 11px}.output{height:38vh}.guideFlow{grid-template-columns:1fr 1fr}.optionWording{grid-template-columns:1fr}.templateGrid{grid-template-columns:1fr}.templateHubHeader{display:block}}
-  </style>
+  <meta name="theme-color" content="#0A7C6E">
+  <link rel="manifest" href="../manifest.json">
+  <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/styles.css">
+  <link rel="stylesheet" href="../assets/notes.css">
 </head>
 <body>
-<div class="wrap">
-  <header class="hero">
-    <div class="eyebrow" id="templateEyebrow">Open Source Tool Developed by Resident Doctors at Oxleas NHS Foundation Trust - For Educational Purposes Only</div>
-    <h1 id="templateTitle">MSE Plus Note Generator</h1>
-    <p class="muted" id="templateSubtitle">Structured MSE documentation with phenomenology prompts, risk formulation cues, and reference-only clinical reminders.</p>
-    <div class="actions">
-      <button class="btn secondary" id="editModeBtn">Edit mode</button>
-      <button class="btn secondary" id="studyModeBtn">Study Mode</button>
-      <button class="btn secondary" id="resetAnswersBtn">Reset patient answers</button>
-      <button class="btn secondary" id="factoryBtn">Factory reset tool</button>
-    </div>
+<div class="app-shell notes-shell">
+  <header class="site-header">
+    <a class="brand" href="../index.html" aria-label="Oval Health home">
+      <span class="brand-mark" aria-hidden="true">O</span>
+      <span>
+        <strong>Oval Notes</strong>
+        <span>Structured documentation</span>
+      </span>
+    </a>
+    <nav class="top-nav" aria-label="Primary navigation">
+      <a href="../index.html#tools">Tools</a>
+      <a href="../index.html#roadmap">Roadmap</a>
+      <a href="../about.html">About</a>
+    </nav>
   </header>
+
+  <section class="hero notes-hero" aria-labelledby="notes-generator-title">
+    <div class="hero-main">
+      <p class="eyebrow" id="templateEyebrow">Oval Notes</p>
+      <h1 id="notes-generator-title">Structured clinical documentation.</h1>
+      <p>Fast consultation templates that keep the note, memory aid and clinical structure in one calm workspace.</p>
+      <div class="template-state">
+        <span>Current template</span>
+        <strong id="templateTitle">MSE Plus Note Generator</strong>
+        <p id="templateSubtitle">Structured MSE documentation with phenomenology prompts, risk formulation cues, and reference-only clinical reminders.</p>
+      </div>
+    </div>
+    <aside class="hero-card">
+      <h2>Workspace controls</h2>
+      <div class="actions">
+        <button class="btn secondary" id="editModeBtn">Edit mode</button>
+        <button class="btn secondary" id="studyModeBtn">Study Mode</button>
+        <button class="btn secondary" id="resetAnswersBtn">Reset patient answers</button>
+        <button class="btn secondary" id="factoryBtn">Factory reset tool</button>
+      </div>
+    </aside>
+  </section>
 
   <section class="templateHub" aria-label="Clinical templates">
     <div class="templateHubHeader">
       <div>
         <h2>Choose a consultation template</h2>
-        <p class="muted" style="margin:.25rem 0 0">Start with a ready-made structure, then edit it for your team or specialty.</p>
+        <p class="muted template-intro">Start with a ready-made structure, then edit it for your team or specialty.</p>
       </div>
     </div>
     <div class="templateGrid" id="templateGrid"></div>
@@ -131,19 +64,19 @@
 
   <section class="editbar" id="editBar">
     <div class="panel">
-      <div class="row" style="justify-content:space-between">
+      <div class="row edit-header-row">
         <div>
           <span class="pill">Team editing mode</span>
-          <h2 style="margin:.45rem 0 .2rem">Edit the tool safely</h2>
-          <p class="muted" style="margin:0">Change sections, answers, note wording, prompts, references, and export/import the full configuration. All edits save in this browser until pushed into the app defaults.</p>
+          <h2 class="edit-heading">Edit the tool safely</h2>
+          <p class="muted flush">Change sections, answers, note wording, prompts, references, and export/import the full configuration. All edits save in this browser until pushed into the app defaults.</p>
         </div>
         <button class="btn secondary" id="closeEditBtn">Close editor</button>
       </div>
-      <div class="editGrid" style="margin-top:14px">
+      <div class="editGrid edit-grid-spaced">
         <div>
           <label class="label">Quick suggestion / meeting note</label>
           <textarea id="suggestionText" placeholder="Example: Add sleep reversal to Biological symptoms..."></textarea>
-          <div class="row" style="margin-top:8px;justify-content:flex-start">
+          <div class="row row-start">
             <button class="btn" id="addSuggestionBtn">Add suggestion</button>
             <button class="btn secondary" id="copySuggestionsBtn">Copy suggestions</button>
           </div>
@@ -152,24 +85,24 @@
         <div>
           <label class="label">Import / export configuration</label>
           <textarea id="configBox" placeholder="Exported JSON appears here. Paste edited JSON here and click Import."></textarea>
-          <div class="row" style="margin-top:8px;justify-content:flex-start">
+          <div class="row row-start">
             <button class="btn" id="exportBtn">Export JSON</button>
             <button class="btn secondary" id="importBtn">Import JSON</button>
           </div>
-          <p class="muted" id="importStatus" style="font-size:12px">Import validates sections and fields before applying changes. Export JSON to save a local copy of your custom note design.</p>
+          <p class="muted import-status" id="importStatus">Import validates sections and fields before applying changes. Export JSON to save a local copy of your custom note design.</p>
         </div>
       </div>
-      <div class="editTools" style="display:block;margin-top:14px">
+      <div class="editTools template-editor">
         <label class="label">Generated note template</label>
         <textarea id="noteTemplateBox" placeholder="Use placeholders such as {{sections}}, {{riskSummary}}, {{organicRedFlags}}"></textarea>
-        <div class="row" style="margin-top:8px;justify-content:flex-start">
+        <div class="row row-start">
           <button class="btn secondary" id="resetTemplateBtn">Restore default note format</button>
         </div>
       </div>
     </div>
   </section>
 
-  <main class="grid">
+  <main class="grid notes-workspace">
     <nav class="navPanel">
       <div class="navTitle">Sections</div>
       <div id="sectionNav"></div>
@@ -1040,7 +973,7 @@ function renderGuides(){
         </div>
       </div>
     </details>`;
-  }).join(''):'<p class="muted" style="margin:0">No quick reference guides have been added to this template yet.</p>';
+  }).join(''):'<p class="muted flush">No quick reference guides have been added to this template yet.</p>';
   quickGuides.querySelectorAll('[data-guide]').forEach(btn=>btn.onclick=()=>{
     const gid=btn.dataset.guide;
     guideReminders=guideReminders.includes(gid)?guideReminders.filter(x=>x!==gid):[...guideReminders,gid];
@@ -1073,27 +1006,27 @@ function comboNoteEditor(f){
   const key=comboKeyFor(f,values);
   return `<div class="wide blockEditor">
     <div class="label">Generated wording for this selected combination</div>
-    <p class="muted" style="margin:0 0 8px;font-size:12px">${esc(orderedValues(f,values).join(' + '))}</p>
+    <p class="muted microcopy">${esc(orderedValues(f,values).join(' + '))}</p>
     <textarea data-combo-note="${esc(key)}">${esc(comboNoteText(f,values))}</textarea>
-    <p class="muted" style="margin:6px 0 0;font-size:12px">This sentence is used only when this exact combination of answers is selected.</p>
+    <p class="muted microcopy after">This sentence is used only when this exact combination of answers is selected.</p>
   </div>`;
 }
 function optionNoteEditor(f){
   const options=f.options||[];
-  if(!options.length)return'<p class="muted wide" style="margin:0;font-size:13px">Text and short-answer fields use the main generated note wording above.</p>';
+  if(!options.length)return'<p class="muted wide empty-note">Text and short-answer fields use the main generated note wording above.</p>';
   f.optionNotes=f.optionNotes||{};
   return `<div class="wide"><div class="label">Generated wording for each answer</div><div class="optionWordings">
     ${options.map(o=>`<div class="optionWording">
       <div class="optionName">${esc(o)}</div>
       <textarea data-option-note="${esc(o)}">${esc(optionNoteText(f,o))}</textarea>
     </div>`).join('')}
-  </div>${comboNoteEditor(f)}<div class="reference" style="margin-top:8px"><strong>Selected-answer preview:</strong> ${esc(generatedPreview(f)||'Select answers to preview combined wording.')}</div><p class="muted" style="margin:6px 0 0;font-size:12px">Use {{value}} for the selected answer in lowercase, or {{rawValue}} for the original capitalisation.</p></div>`;
+  </div>${comboNoteEditor(f)}<div class="reference reference-preview"><strong>Selected-answer preview:</strong> ${esc(generatedPreview(f)||'Select answers to preview combined wording.')}</div><p class="muted microcopy after">Use {{value}} for the selected answer in lowercase, or {{rawValue}} for the original capitalisation.</p></div>`;
 }
 function blockEditorList(f){
   const blocks=Array.isArray(f.contentBlocks)?f.contentBlocks:legacyBlocks(f);
   f.contentBlocks=blocks;
   return `<div class="wide"><div class="label">Clinical notes, interview prompts and reference guidance around this answer set</div>
-    <div class="row" style="justify-content:flex-start;margin-bottom:8px">
+    <div class="row block-action-row">
       <button class="btn small secondary" data-a="addBlock" data-type="clinical" data-pos="after">Add clinical note below</button>
       <button class="btn small secondary" data-a="addBlock" data-type="interview" data-pos="after">Add interview prompts below</button>
       <button class="btn small secondary" data-a="addBlock" data-type="reference" data-pos="after">Add reference below</button>
@@ -1105,20 +1038,20 @@ function blockEditorList(f){
         <label class="wide">Heading<input data-bk="title" value="${esc(b.title||blockTitle(b.type))}"></label>
         <label class="wide">Text<textarea data-bk="body" placeholder="${b.type==='interview'?'One prompt per line':'Guidance text'}">${esc(b.body||'')}</textarea></label>
       </div>
-      <div class="row" style="justify-content:flex-start;margin-top:8px">
+      <div class="row row-start">
         <button class="btn small secondary" data-a="saveBlock" data-bi="${bi}">Save block</button>
         <button class="btn small secondary" data-a="blockUp" data-bi="${bi}">Move up</button>
         <button class="btn small secondary" data-a="blockDown" data-bi="${bi}">Move down</button>
         <button class="btn small danger" data-a="delBlock" data-bi="${bi}">Delete block</button>
       </div>
-    </div>`).join(''):'<p class="muted" style="margin:0;font-size:13px">No guidance blocks yet. Add one above or below this answer set.</p>'}</div>
+    </div>`).join(''):'<p class="muted empty-note">No guidance blocks yet. Add one above or below this answer set.</p>'}</div>
   </div>`;
 }
 function sectionReferenceEditor(sec){
   const blocks=sectionBlocks(sec);
   sec.referenceBlocks=blocks;
   return `<div class="wide"><div class="label">Reference-only guidance below this section title</div>
-    <div class="row" style="justify-content:flex-start;margin-bottom:8px">
+    <div class="row block-action-row">
       <button class="btn small secondary" data-a="addSectionReference">Add reference below section title</button>
     </div>
     <div class="blockList">${blocks.length?blocks.map((b,bi)=>`<div class="blockEditor" data-section-block="${bi}">
@@ -1126,13 +1059,13 @@ function sectionReferenceEditor(sec){
         <label class="wide">Heading<input data-sbk="title" value="${esc(b.title||'Reference-only guidance')}"></label>
         <label class="wide">Text<textarea data-sbk="body" placeholder="Reference-only guidance text">${esc(b.body||'')}</textarea></label>
       </div>
-      <div class="row" style="justify-content:flex-start;margin-top:8px">
+      <div class="row row-start">
         <button class="btn small secondary" data-a="saveSectionReference" data-bi="${bi}">Save reference</button>
         <button class="btn small secondary" data-a="sectionReferenceUp" data-bi="${bi}">Move up</button>
         <button class="btn small secondary" data-a="sectionReferenceDown" data-bi="${bi}">Move down</button>
         <button class="btn small danger" data-a="delSectionReference" data-bi="${bi}">Delete reference</button>
       </div>
-    </div>`).join(''):'<p class="muted" style="margin:0;font-size:13px">No section guidance yet. Add a reference block below this section title.</p>'}</div>
+    </div>`).join(''):'<p class="muted empty-note">No section guidance yet. Add a reference block below this section title.</p>'}</div>
   </div>`;
 }
 function saveFeedback(btn,msg='Saved'){
@@ -1150,7 +1083,7 @@ function fieldEditor(si,fi,f){
     ${optionNoteEditor(f)}
     ${blockEditorList(f)}
     <label class="wide">Flags, comma-separated<input data-k="flags" value="${esc((f.flags||[]).join(', '))}"></label>
-  </div><div class="row" style="justify-content:flex-start;margin-top:8px"><button class="btn small" data-a="save">Save field</button><button class="btn small danger" data-a="del">Delete</button></div>`;
+  </div><div class="row row-start"><button class="btn small" data-a="save">Save field</button><button class="btn small danger" data-a="del">Delete</button></div>`;
   d.querySelector('[data-k=type]').value=f.type;
   d.onclick=e=>{
     const a=e.target.dataset.a;if(!a)return;
@@ -1192,7 +1125,7 @@ function sectionEditor(si,sec){
     <label>Helper text<input id="sh${si}" value="${esc(sec.helper||'')}"></label>
     <label class="wide">Section note format<textarea id="sf${si}">${esc(sec.summaryTemplate||'{{title}}: {{fields}}')}</textarea></label>
     ${sectionReferenceEditor(sec)}
-  </div><div class="row" style="justify-content:flex-start;margin-top:8px"><button class="btn small" data-a="save">Save section</button><button class="btn small secondary" data-a="add">Add field</button><button class="btn small secondary" data-a="up">Move up</button><button class="btn small secondary" data-a="down">Move down</button><button class="btn small danger" data-a="del">Delete section</button></div>`;
+  </div><div class="row row-start"><button class="btn small" data-a="save">Save section</button><button class="btn small secondary" data-a="add">Add field</button><button class="btn small secondary" data-a="up">Move up</button><button class="btn small secondary" data-a="down">Move down</button><button class="btn small danger" data-a="del">Delete section</button></div>`;
   t.onclick=e=>{
     const a=e.target.dataset.a;if(!a)return;
     if(a==='save'){sec.title=document.getElementById('st'+si).value||sec.title;sec.helper=document.getElementById('sh'+si).value;sec.summaryTemplate=document.getElementById('sf'+si).value;sec.reference='';saveFeedback(e.target,'Section saved')}
