@@ -1,12 +1,16 @@
-# Mental Health Tools
+# Note Generator
 
-## Mental State Examination Note Generator
+## Clinical note template generator
 
-A lightweight web app for generating structured Mental State Examination (MSE) clinical notes from checklist selections.
+A lightweight in-browser app for generating structured clinical notes from clickable consultation templates.
 
 ### Features
-- Structured MSE sections
-- Clinical teaching notes in expandable dropdowns
+- Template landing page
+- Mental State Examination (MSE) template
+- A&E chest pain consultation template
+- Clickable answers that generate structured clinical wording
+- Template-specific memory aids and reference prompts
+- Editable sections, answers and note wording
 - Instant note generation
 - Copy-to-clipboard output
 - Runs entirely in-browser
@@ -22,4 +26,4 @@ A lightweight web app for generating structured Mental State Examination (MSE) c
 4. Save
 
 The site will then be available at:
-https://drnoorrai.github.io/mental-health/
+https://drnoorrai.github.io/note-generator/

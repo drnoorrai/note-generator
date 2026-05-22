@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>MSE Plus Note Generator</title>
+  <title>Clinical Note Template Generator</title>
   <style>
     *{box-sizing:border-box}
     :root{--ink:#111827;--muted:#64748b;--line:#d7dee8;--panel:#fff;--soft:#f8fafc;--blue:#0f4c81;--teal:#0f766e;--amber:#92400e;--red:#991b1b;--green:#166534;--shadow:0 1px 3px #0001}
@@ -73,6 +73,16 @@
     .inlineAdd{display:none;gap:8px;margin-top:8px}
     .editing .inlineAdd{display:flex}
     .toast{min-height:22px;color:#166534;font-weight:800;font-size:13px}
+    .templateHub{margin-bottom:16px}
+    .templateHubHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .templateHubHeader h2{margin:0}
+    .templateGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .templateCard{border:1px solid var(--line);background:#fff;border-radius:8px;padding:14px;text-align:left;cursor:pointer;box-shadow:var(--shadow);display:grid;gap:8px}
+    .templateCard:hover,.templateCard.active{border-color:#0f4c81;background:#f8fbff}
+    .templateCard.active{box-shadow:0 0 0 3px #bfdbfe}
+    .templateCardTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:900;color:#0f172a}
+    .templateCard p{margin:0;color:#64748b;font-size:14px;line-height:1.45}
+    .templateMeta{display:flex;gap:6px;flex-wrap:wrap}
     .savedFlash{box-shadow:0 0 0 3px #86efac;background:#166534!important;color:#fff!important}
     body:not(.studyMode) .contentBlock,body:not(.studyMode) .quickRefCard{display:none}
     .guideIntro{margin:0 0 10px;font-size:13px;color:#64748b}
@@ -92,15 +102,15 @@
     .guideSource a{color:#0f4c81}
     .guideAdded{background:#dcfce7;color:#166534;border-radius:999px;padding:3px 7px;font-size:11px;font-weight:850}
     @media(max-width:1120px){.grid{grid-template-columns:1fr}.navPanel,.sticky{position:static}.sticky{max-height:none;overflow:visible}.output{height:42vh}.navPanel{display:none}}
-    @media(max-width:720px){.wrap{padding:12px}.hero,.card{border-radius:8px;padding:14px}.editGrid{grid-template-columns:1fr}.sectionHead{display:block}.sectionTools{justify-content:flex-start}.btn{padding:9px 11px}.output{height:38vh}.guideFlow{grid-template-columns:1fr 1fr}.optionWording{grid-template-columns:1fr}}
+    @media(max-width:720px){.wrap{padding:12px}.hero,.card{border-radius:8px;padding:14px}.editGrid{grid-template-columns:1fr}.sectionHead{display:block}.sectionTools{justify-content:flex-start}.btn{padding:9px 11px}.output{height:38vh}.guideFlow{grid-template-columns:1fr 1fr}.optionWording{grid-template-columns:1fr}.templateGrid{grid-template-columns:1fr}.templateHubHeader{display:block}}
   </style>
 </head>
 <body>
 <div class="wrap">
   <header class="hero">
-    <div class="eyebrow">Open Source Tool Developed by Resident Doctors at Oxleas NHS Foundation Trust - For Educational Purposes Only</div>
-    <h1>MSE Plus Note Generator</h1>
-    <p class="muted">Structured MSE documentation with phenomenology prompts, risk formulation cues, and reference-only clinical reminders.</p>
+    <div class="eyebrow" id="templateEyebrow">Open Source Tool Developed by Resident Doctors at Oxleas NHS Foundation Trust - For Educational Purposes Only</div>
+    <h1 id="templateTitle">MSE Plus Note Generator</h1>
+    <p class="muted" id="templateSubtitle">Structured MSE documentation with phenomenology prompts, risk formulation cues, and reference-only clinical reminders.</p>
     <div class="actions">
       <button class="btn secondary" id="editModeBtn">Edit mode</button>
       <button class="btn secondary" id="studyModeBtn">Study Mode</button>
@@ -108,6 +118,16 @@
       <button class="btn secondary" id="factoryBtn">Factory reset tool</button>
     </div>
   </header>
+
+  <section class="templateHub" aria-label="Clinical templates">
+    <div class="templateHubHeader">
+      <div>
+        <h2>Choose a consultation template</h2>
+        <p class="muted" style="margin:.25rem 0 0">Start with a ready-made structure, then edit it for your team or specialty.</p>
+      </div>
+    </div>
+    <div class="templateGrid" id="templateGrid"></div>
+  </section>
 
   <section class="editbar" id="editBar">
     <div class="panel">
@@ -180,7 +200,9 @@
 </div>
 
 <script>
-const KEY='mse_sections_v3',SKEY='mse_suggestions_v1',TKEY='mse_note_template_v1';
+const LEGACY_KEY='mse_sections_v3',LEGACY_SKEY='mse_suggestions_v1',LEGACY_TKEY='mse_note_template_v1';
+const ACTIVE_TEMPLATE_KEY='note_generator_active_template_v1';
+let activeTemplateId=localStorage.getItem(ACTIVE_TEMPLATE_KEY)||'mse';
 const DEFAULT_NOTE_TEMPLATE=`Mental State Examination:
 
 {{sections}}`;
@@ -466,6 +488,123 @@ const DEFAULT_SECTIONS=[
   ]}
 ];
 
+const CHEST_PAIN_NOTE_TEMPLATE=`A&E Chest Pain Consultation:
+
+{{sections}}`;
+const CHEST_PAIN_GUIDES=[
+  {
+    id:'acs',
+    title:'ACS initial assessment reminder',
+    tags:['NICE CG95','NICE NG185','ECG/troponin'],
+    flow:['Symptoms','12-lead ECG','Troponin','Pathway'],
+    bullets:[
+      'Document the timing and nature of pain, cardiovascular risk factors, observations, ECG findings and high-sensitivity troponin pathway used locally.',
+      'Escalate immediately for ongoing ischaemic pain, concerning ECG changes, haemodynamic instability, arrhythmia, syncope or heart failure features.',
+      'NICE NG185 includes physical examination with blood pressure and heart rate, and blood tests such as troponin, creatinine, glucose and haemoglobin.',
+      'Do not let a normal ECG alone close the assessment; document repeat ECG/troponin timing according to local ACS pathway.'
+    ],
+    document:[
+      'Pain onset time, last episode, current pain status and ECG time.',
+      'Troponin timing/result and whether repeat testing is due or complete.',
+      'Aspirin/ACS pathway/senior review only where clinically appropriate and in line with local policy.',
+      'Clear plan, review triggers and discharge advice if discharged.'
+    ],
+    phrases:[
+      'ACS was considered because of [features]; ECG and troponin pathway were used according to local guidance.',
+      'There were no current features documented to suggest immediate STEMI/unstable ACS: [ECG/observations/current pain findings].',
+      'The plan was discussed with [senior/cardiology] because of [reason].'
+    ],
+    note:'ACS reminder used: pain timing, ECG, troponin pathway, observations, risk factors, senior escalation triggers and local ACS policy were considered.',
+    source:'NICE CG95 recent-onset chest pain and NICE NG185 acute coronary syndromes',
+    url:'https://www.nice.org.uk/guidance/cg95/chapter/Recommendations'
+  },
+  {
+    id:'dangerous_differentials',
+    title:'Dangerous differential reminder',
+    tags:['Dissection','PE','Pneumothorax'],
+    flow:['Aorta','PE','Lung','Other'],
+    bullets:[
+      'Aortic dissection cues: abrupt maximal tearing pain, pulse or neurological deficit, hypotension, mediastinal widening, connective tissue disease or severe hypertension.',
+      'Pulmonary embolism cues: pleuritic pain, dyspnoea, haemoptysis, syncope, tachycardia, hypoxia, unilateral leg swelling, recent surgery/immobility, cancer or pregnancy/postpartum.',
+      'Pneumothorax cues: pleuritic pain, reduced breath sounds, hyper-resonance, respiratory distress or underlying lung disease.',
+      'Also consider sepsis, pneumonia, pericarditis/myocarditis, oesophageal rupture and upper GI causes when the history points away from ACS.'
+    ],
+    document:[
+      'Specific positive and negative features for dissection, PE and pneumothorax.',
+      'Oxygen saturations, respiratory rate, pulse, blood pressure and temperature.',
+      'Chest examination, pulses/BP asymmetry and calf signs where relevant.',
+      'Imaging or scoring pathway used, if any, according to local guidance.'
+    ],
+    phrases:[
+      'I considered immediately life-threatening non-ACS causes including aortic dissection, PE and pneumothorax.',
+      'Features for dissection were [present/absent]: [pain quality/pulses/neuro/BP findings].',
+      'Features for PE were [present/absent]: [dyspnoea/pleuritic pain/VTE risks/oxygenation/calf findings].'
+    ],
+    note:'Dangerous differential reminder used: dissection, PE, pneumothorax, sepsis/pneumonia, pericarditis/myocarditis and GI causes were considered where clinically relevant.',
+    source:'A&E chest pain educational differential prompt',
+    url:''
+  }
+];
+const CHEST_PAIN_SECTIONS=[
+  {title:'Triage & First Impression',helper:'Capture time-critical facts before the story gets long.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpArrivalMode',label:'Arrival / source',type:'multi',options:['Walk-in','Ambulance','GP referral','111 referral','Brought by family','Police/other service'],note:'Arrival/source: {{value}}.'},
+    {id:'cpPainNow',label:'Current pain status',type:'single',options:['Pain-free','Ongoing chest pain','Intermittent pain','Worsening pain','Pain resolved before arrival'],note:'Current pain status was {{value}}.'},
+    {id:'cpTimeOnset',label:'Onset / last episode time',type:'short',note:'Pain onset/last episode time: {{value}}.'},
+    {id:'cpObs',label:'Initial observations',type:'text',note:'Initial observations: {{value}}.'},
+    {id:'cpEcgTiming',label:'ECG timing',type:'multi',options:['12-lead ECG done','Repeat ECG planned','Dynamic ECG change','No acute ECG change documented','ECG not yet available'],note:'ECG timing/status: {{value}}.',flags:['risk']},
+    {id:'cpImmediateConcern',label:'Immediate concern',type:'multi',options:['None apparent','Looks unwell','Haemodynamic instability','Hypoxia','Syncope/collapse','Arrhythmia','Ongoing severe pain','Diaphoresis','Vomiting'],note:'Immediate concern features included {{value}}.',flags:['risk']}
+  ]},
+  {title:'Chest Pain History',helper:'Fast SOCRATES-style memory aid plus associated symptoms.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpSite',label:'Site',type:'multi',options:['Central','Left-sided','Right-sided','Retrosternal','Epigastric','Back/interscapular','Diffuse'],note:'Pain site was {{value}}.'},
+    {id:'cpCharacter',label:'Character',type:'multi',options:['Pressure/heaviness','Tightness','Sharp','Pleuritic','Burning','Tearing/ripping','Crushing','Musculoskeletal'],note:'Pain character was {{value}}.',flags:['risk']},
+    {id:'cpRadiation',label:'Radiation',type:'multi',options:['None','Left arm','Right arm','Jaw/neck','Back','Shoulder','Epigastrium'],note:'Pain radiation: {{value}}.'},
+    {id:'cpSeverity',label:'Severity /10',type:'short',note:'Pain severity was {{value}}/10.'},
+    {id:'cpDuration',label:'Duration / pattern',type:'multi',options:['Minutes','More than 20 minutes','Hours','Intermittent episodes','Persistent','Exertional','At rest','Post-prandial'],note:'Pain duration/pattern: {{value}}.'},
+    {id:'cpTriggersRelief',label:'Triggers / relief',type:'multi',options:['Exertion','Emotion/stress','Respiration','Position','Palpation','Food','GTN response','Analgesia response','Rest improves','No clear trigger'],note:'Triggers/relieving factors: {{value}}.'},
+    {id:'cpAssociated',label:'Associated symptoms',type:'multi',options:['None','Dyspnoea','Sweating','Nausea/vomiting','Palpitations','Syncope/presyncope','Haemoptysis','Fever/cough','Leg swelling','Neurological symptoms'],note:'Associated symptoms included {{value}}.',flags:['risk']},
+    {id:'cpHistoryNotes',label:'Patient wording / extra history',type:'text',note:'Additional chest pain history: {{value}}.'}
+  ]},
+  {title:'Red Flags & Dangerous Differentials',helper:'Positive and negative prompts for conditions that should not be missed.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpAcsFlags',label:'ACS concern features',type:'multi',options:['Typical cardiac pain','Ongoing pain','Dynamic ECG changes','Raised troponin','Known IHD','Diabetes','Older age/frailty','Cocaine/stimulant use','No ACS features documented'],note:'ACS concern features: {{value}}.',flags:['risk']},
+    {id:'cpDissectionFlags',label:'Aortic dissection features',type:'multi',options:['None elicited','Abrupt maximal onset','Tearing/ripping to back','Pulse deficit','Neurological deficit','Hypotension/shock','BP differential','Connective tissue disease','Known aneurysm'],note:'Aortic dissection features: {{value}}.',flags:['risk']},
+    {id:'cpPeFlags',label:'PE features / VTE risks',type:'multi',options:['None elicited','Pleuritic pain','Dyspnoea','Hypoxia','Tachycardia','Haemoptysis','Unilateral leg swelling','Recent surgery/immobility','Previous VTE','Cancer','Pregnancy/postpartum','Oestrogen therapy'],note:'PE features/VTE risks: {{value}}.',flags:['risk']},
+    {id:'cpPneumothoraxFlags',label:'Pneumothorax / respiratory features',type:'multi',options:['None elicited','Sudden pleuritic pain','Unilateral reduced breath sounds','Respiratory distress','Known lung disease','Trauma'],note:'Pneumothorax/respiratory features: {{value}}.',flags:['risk']},
+    {id:'cpOtherDifferentials',label:'Other differentials considered',type:'multi',options:['Pericarditis/myocarditis','Pneumonia','Sepsis','Oesophageal reflux/spasm','Oesophageal rupture','Biliary/GI cause','Chest wall pain','Anxiety/panic'],note:'Other differentials considered: {{value}}.'}
+  ]},
+  {title:'Background Risk & Medication',helper:'A quick cardiovascular, VTE and medication screen.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpPastHistory',label:'Past history',type:'multi',options:['IHD/MI','PCI/CABG','Heart failure','Valve disease','Arrhythmia','Hypertension','Diabetes','Hyperlipidaemia','Stroke/TIA','CKD','COPD/asthma','Previous VTE','No relevant history'],note:'Past history included {{value}}.'},
+    {id:'cpRiskFactors',label:'Risk factors',type:'multi',options:['Smoker','Ex-smoker','Family history premature IHD','Obesity','Sedentary','Recent long travel','Recent surgery','Cancer','Recreational cocaine/stimulants','Pregnancy/postpartum'],note:'Risk factors included {{value}}.'},
+    {id:'cpMeds',label:'Medications / allergies',type:'text',note:'Medications/allergies: {{value}}.'},
+    {id:'cpBaselineFunction',label:'Baseline function / frailty',type:'short',note:'Baseline function/frailty: {{value}}.'}
+  ]},
+  {title:'Examination',helper:'Prompts for a focused A&E chest pain exam.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpGeneralExam',label:'General',type:'multi',options:['Comfortable','Distressed','Pale/clammy','Increased work of breathing','Febrile','Peripherally shut down'],note:'General examination: {{value}}.'},
+    {id:'cpCardioExam',label:'Cardiovascular',type:'multi',options:['Heart sounds normal','Murmur','Added sounds','Peripheral oedema','JVP raised','Pulses equal','Pulse deficit','BP differential'],note:'Cardiovascular examination: {{value}}.',flags:['risk']},
+    {id:'cpRespExam',label:'Respiratory',type:'multi',options:['Clear chest','Crepitations','Wheeze','Reduced air entry','Unilateral findings','Chest wall tenderness','Pleural rub'],note:'Respiratory/chest examination: {{value}}.'},
+    {id:'cpLegExam',label:'Calves / VTE signs',type:'multi',options:['No calf swelling/tenderness','Unilateral swelling','Calf tenderness','Pitting oedema','Not assessed'],note:'Calf/VTE examination: {{value}}.'},
+    {id:'cpExamNotes',label:'Other examination notes',type:'text',note:'Other examination notes: {{value}}.'}
+  ]},
+  {title:'Investigations',helper:'Document what is done, what is pending, and why.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpEcgResult',label:'ECG result',type:'multi',options:['Normal sinus rhythm','No acute ischaemic change','ST elevation','ST depression','T-wave inversion','New LBBB','Arrhythmia','Repeat ECG requested','Compared with old ECG'],note:'ECG result: {{value}}.',flags:['risk']},
+    {id:'cpTroponin',label:'Troponin pathway',type:'multi',options:['Initial troponin sent','Initial troponin negative','Initial troponin raised','Repeat troponin due','Delta troponin reassuring','Delta troponin concerning','Local rule-out pathway completed','Not indicated after assessment'],note:'Troponin pathway: {{value}}.',flags:['risk']},
+    {id:'cpBloods',label:'Bloods',type:'multi',options:['FBC','U&E/creatinine','LFT','CRP','Glucose','Coagulation','Group and save','VBG/ABG','D-dimer if indicated'],note:'Blood tests considered/performed: {{value}}.'},
+    {id:'cpImaging',label:'Imaging',type:'multi',options:['CXR requested','CXR reviewed','CT aorta considered/requested','CTPA considered/requested','Echo considered','No imaging indicated presently'],note:'Imaging: {{value}}.'},
+    {id:'cpInvestigationNotes',label:'Results / pending tests',type:'text',note:'Investigation results/pending tests: {{value}}.'}
+  ]},
+  {title:'Assessment & Plan',helper:'Turn the checklist into a coherent clinical plan.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpWorkingImpression',label:'Working impression',type:'multi',options:['Possible ACS','Likely non-cardiac chest pain','Pleuritic chest pain','Possible PE','Possible dissection','Pneumonia/respiratory cause','Musculoskeletal chest pain','GI/reflux-type pain','Unclear - needs observation/review'],note:'Working impression: {{value}}.'},
+    {id:'cpTreatment',label:'Treatment / pathway prompts',type:'multi',options:['Analgesia given/offered','Antiemetic','Aspirin/ACS pathway considered','Oxygen if clinically indicated','IV access','Serial observations','Repeat ECG/troponin','Local PE pathway','Local dissection pathway','Senior ED review'],note:'Treatment/pathway prompts: {{value}}.',flags:['risk']},
+    {id:'cpReferrals',label:'Discussion / referrals',type:'multi',options:['Senior ED discussed','Cardiology discussed','Medical team referred','Ambulatory care referred','Radiology discussed','GP follow-up advised','No referral presently'],note:'Discussion/referrals: {{value}}.'},
+    {id:'cpPlanNotes',label:'Plan details',type:'text',note:'Plan details: {{value}}.'}
+  ]},
+  {title:'Disposition & Safety Net',helper:'Make the endpoint and review triggers explicit.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpDisposition',label:'Disposition',type:'single',options:['Admit','ED observation','Same-day emergency care','Ambulatory clinic','Discharge','Transferred','Awaiting results/review'],note:'Disposition: {{value}}.'},
+    {id:'cpSafetyNetting',label:'Safety-netting documented',type:'multi',options:['Return if pain recurs/worsens','Return if breathlessness/syncope/sweats','Return if neurological symptoms','Return if haemoptysis/leg swelling','Medication advice given','Follow-up plan explained','Patient understands plan','Written advice provided'],note:'Safety-netting documented: {{value}}.'},
+    {id:'cpPatientUnderstanding',label:'Patient understanding / concerns',type:'text',note:'Patient understanding/concerns: {{value}}.'},
+    {id:'cpClosing',label:'Anything else important?',type:'text',note:'Additional closing information: {{value}}.'}
+  ]}
+];
+
 const clone=x=>JSON.parse(JSON.stringify(x));
 const FIELD_DEFAULT_OVERRIDES={
   selfCare:{
@@ -604,8 +743,45 @@ function applyDefaultOverrides(){
   }));
 }
 applyDefaultOverrides();
+const TEMPLATES={
+  mse:{
+    id:'mse',
+    title:'MSE Plus Note Generator',
+    shortTitle:'Mental State Examination',
+    subtitle:'Structured MSE documentation with phenomenology prompts, risk formulation cues, and reference-only clinical reminders.',
+    description:'A psychiatry template for mental state examination, risk, capacity, organic screen and synthesis.',
+    tags:['Psychiatry','MSE','Risk'],
+    sections:DEFAULT_SECTIONS,
+    guides:QUICK_GUIDES,
+    defaultNoteTemplate:DEFAULT_NOTE_TEMPLATE
+  },
+  chestPain:{
+    id:'chestPain',
+    title:'A&E Chest Pain Consultation',
+    shortTitle:'A&E Chest Pain',
+    subtitle:'Clickable A&E chest pain prompts for history, red flags, examination, investigations, assessment, disposition and safety-netting.',
+    description:'An emergency medicine template for chest pain clerking, dangerous differentials and concise documentation.',
+    tags:['A&E','Chest pain','ACS'],
+    sections:CHEST_PAIN_SECTIONS,
+    guides:CHEST_PAIN_GUIDES,
+    defaultNoteTemplate:CHEST_PAIN_NOTE_TEMPLATE
+  }
+};
+if(!TEMPLATES[activeTemplateId])activeTemplateId='mse';
 let sections=loadSections(),state={},edit=false,studyMode=false,noteTemplate=loadTemplate(),guideReminders=[];
 const fieldIndex=()=>sections.flatMap((s,si)=>s.fields.map((f,fi)=>({section:s,field:f,si,fi})));
+function activeTemplate(){return TEMPLATES[activeTemplateId]||TEMPLATES.mse}
+function templateDefaults(){return activeTemplate().sections}
+function templateGuides(){return activeTemplate().guides||[]}
+function storageKey(kind){return `note_generator_${activeTemplateId}_${kind}_v1`}
+function legacyStorageKey(kind){
+  if(activeTemplateId!=='mse')return null;
+  return kind==='sections'?LEGACY_KEY:kind==='suggestions'?LEGACY_SKEY:kind==='note_template'?LEGACY_TKEY:null;
+}
+function readTemplateStorage(kind){
+  const key=storageKey(kind),legacy=legacyStorageKey(kind);
+  return localStorage.getItem(key)||(legacy?localStorage.getItem(legacy):null);
+}
 function byId(items){return Object.fromEntries((items||[]).filter(x=>x&&x.id).map(x=>[x.id,x]))}
 function mergeOptions(def,saved){
   const out=[];
@@ -613,9 +789,10 @@ function mergeOptions(def,saved){
   return out;
 }
 function normalizeSections(raw){
-  if(!Array.isArray(raw))return clone(DEFAULT_SECTIONS);
+  const defaults=templateDefaults();
+  if(!Array.isArray(raw))return clone(defaults);
   const byTitle=Object.fromEntries(raw.map(s=>[s.title,s]));
-  return DEFAULT_SECTIONS.map(def=>{
+  return defaults.map(def=>{
     const saved=byTitle[def.title]||{};
     const savedFields=byId(saved.fields);
     const fields=def.fields.map(f=>{
@@ -631,13 +808,13 @@ function normalizeSections(raw){
     });
     const extras=(saved.fields||[]).filter(f=>f&&f.id&&!fields.some(x=>x.id===f.id));
     return {...def,...saved,fields:[...fields,...extras]};
-  }).concat(raw.filter(s=>s&&s.title&&!DEFAULT_SECTIONS.some(d=>d.title===s.title)));
+  }).concat(raw.filter(s=>s&&s.title&&!defaults.some(d=>d.title===s.title)));
 }
-function loadSections(){try{return normalizeSections(JSON.parse(localStorage.getItem(KEY)||'null'))}catch{return clone(DEFAULT_SECTIONS)}}
-function normalizeTemplate(t){return String(t||DEFAULT_NOTE_TEMPLATE).replace(/\\n/g,'\n')}
-function loadTemplate(){try{return normalizeTemplate(localStorage.getItem(TKEY)||DEFAULT_NOTE_TEMPLATE)}catch{return DEFAULT_NOTE_TEMPLATE}}
-function saveSections(){localStorage.setItem(KEY,JSON.stringify(sections))}
-function saveTemplate(){localStorage.setItem(TKEY,noteTemplate)}
+function loadSections(){try{return normalizeSections(JSON.parse(readTemplateStorage('sections')||'null'))}catch{return clone(templateDefaults())}}
+function normalizeTemplate(t){return String(t||activeTemplate().defaultNoteTemplate).replace(/\\n/g,'\n')}
+function loadTemplate(){try{return normalizeTemplate(readTemplateStorage('note_template')||activeTemplate().defaultNoteTemplate)}catch{return activeTemplate().defaultNoteTemplate}}
+function saveSections(){localStorage.setItem(storageKey('sections'),JSON.stringify(sections))}
+function saveTemplate(){localStorage.setItem(storageKey('note_template'),noteTemplate)}
 function resetState(){state={};fieldIndex().forEach(({field:f})=>state[f.id]=f.type==='multi'?[]:'')}
 function h(v){return Array.isArray(v)?v.join(', ').toLowerCase():(v||'').trim()}
 function displayValue(v){return Array.isArray(v)?v.join(', '):(v||'').trim()}
@@ -825,7 +1002,7 @@ function riskSummary(){
   return `Risk summary: suicide - ${nv(state.suicideRiskSummary)}; violence - ${nv(state.violenceRiskSummary)}; vulnerability - ${nv(state.vulnerabilityRiskSummary)}.`;
 }
 function selectedOrganicRedFlags(){return displayValue(state.organicRedFlags)||displayValue(state.cognitiveRedFlags)||'none recorded'}
-function selectedGuides(){return QUICK_GUIDES.filter(g=>guideReminders.includes(g.id))}
+function selectedGuides(){return templateGuides().filter(g=>guideReminders.includes(g.id))}
 function guideNote(){
   const notes=selectedGuides().map(g=>g.note);
   return notes.length?`Reference guide reminders: ${notes.join(' ')}`:'';
@@ -840,7 +1017,8 @@ function gen(){
   renderNav();
 }
 function renderGuides(){
-  quickGuides.innerHTML=QUICK_GUIDES.map((g,i)=>{
+  const guides=templateGuides();
+  quickGuides.innerHTML=guides.length?guides.map((g,i)=>{
     const added=guideReminders.includes(g.id);
     const tags=g.tags.map(t=>`<span class="flag">${esc(t)}</span>`).join('');
     const flow=g.flow.map(t=>`<span>${esc(t)}</span>`).join('');
@@ -862,7 +1040,7 @@ function renderGuides(){
         </div>
       </div>
     </details>`;
-  }).join('');
+  }).join(''):'<p class="muted" style="margin:0">No quick reference guides have been added to this template yet.</p>';
   quickGuides.querySelectorAll('[data-guide]').forEach(btn=>btn.onclick=()=>{
     const gid=btn.dataset.guide;
     guideReminders=guideReminders.includes(gid)?guideReminders.filter(x=>x!==gid):[...guideReminders,gid];
@@ -1034,6 +1212,34 @@ function sectionEditor(si,sec){
   };
   return t;
 }
+function renderTemplateHub(){
+  const current=activeTemplate();
+  templateTitle.textContent=current.title;
+  templateSubtitle.textContent=current.subtitle;
+  document.title=current.title;
+  templateGrid.innerHTML=Object.values(TEMPLATES).map(t=>{
+    const active=t.id===activeTemplateId;
+    return `<button class="templateCard ${active?'active':''}" type="button" data-template="${esc(t.id)}" aria-pressed="${active}">
+      <div class="templateCardTitle"><span>${esc(t.shortTitle)}</span>${active?'<span class="pill">open</span>':''}</div>
+      <p>${esc(t.description)}</p>
+      <div class="templateMeta">${t.tags.map(tag=>`<span class="flag">${esc(tag)}</span>`).join('')}</div>
+    </button>`;
+  }).join('');
+  templateGrid.querySelectorAll('[data-template]').forEach(btn=>btn.onclick=()=>switchTemplate(btn.dataset.template));
+}
+function switchTemplate(nextId){
+  if(!TEMPLATES[nextId]||nextId===activeTemplateId)return;
+  activeTemplateId=nextId;
+  localStorage.setItem(ACTIVE_TEMPLATE_KEY,activeTemplateId);
+  sections=loadSections();
+  noteTemplate=loadTemplate();
+  guideReminders=[];
+  edit=false;
+  editModeBtn.textContent='Edit mode';
+  noteTemplateBox.value=noteTemplate;
+  render(false);
+  setToast(`${activeTemplate().shortTitle} opened`);
+}
 function render(keep=false){
   const old=keep?state:{};
   form.innerHTML='';
@@ -1042,6 +1248,7 @@ function render(keep=false){
   document.body.classList.toggle('editing',edit);
   document.body.classList.toggle('studyMode',studyMode);
   editBar.classList.toggle('on',edit);
+  renderTemplateHub();
   sections.forEach((sec,si)=>{
     const selected=hasAnswer(sec);
     const c=document.createElement('div');
@@ -1104,8 +1311,8 @@ function renderNav(){
     sectionNav.appendChild(b);
   });
 }
-function gs(){try{return JSON.parse(localStorage.getItem(SKEY))||[]}catch{return[]}}
-function ss(a){localStorage.setItem(SKEY,JSON.stringify(a))}
+function gs(){try{return JSON.parse(readTemplateStorage('suggestions'))||[]}catch{return[]}}
+function ss(a){localStorage.setItem(storageKey('suggestions'),JSON.stringify(a))}
 function showSug(){suggestions.innerHTML='';gs().forEach((x,i)=>{const d=document.createElement('div');d.className='suggestion';d.innerHTML=`${esc(x)}<br><button class="btn small secondary">Remove</button>`;d.querySelector('button').onclick=()=>{const a=gs();a.splice(i,1);ss(a);showSug()};suggestions.appendChild(d)})}
 function setToast(msg){toast.textContent=msg;setTimeout(()=>toast.textContent='',1700)}
 function validateConfig(p){
@@ -1122,12 +1329,12 @@ addSuggestionBtn.onclick=()=>{const t=suggestionText.value.trim();if(t){const a=
 copySuggestionsBtn.onclick=async()=>{await navigator.clipboard.writeText(gs().map((x,i)=>`${i+1}. ${x}`).join('\n')||'No suggestions recorded.');setToast('Suggestions copied')};
 exportBtn.onclick=()=>{configBox.value=JSON.stringify({sections,suggestions:gs(),noteTemplate},null,2);importStatus.textContent='Export ready.'};
 importBtn.onclick=()=>{try{const p=JSON.parse(configBox.value);sections=normalizeSections(validateConfig(p));if(p.suggestions)ss(p.suggestions);if(p.noteTemplate){noteTemplate=p.noteTemplate;saveTemplate();noteTemplateBox.value=noteTemplate}guideReminders=[];saveSections();render(false);importStatus.textContent='Imported successfully.'}catch(e){importStatus.textContent='Import failed: '+e.message}};
-factoryBtn.onclick=()=>{if(confirm('Reset app structure, templates and meeting suggestions in this browser? Patient answers will also clear.')){localStorage.removeItem(KEY);localStorage.removeItem(SKEY);localStorage.removeItem(TKEY);sections=clone(DEFAULT_SECTIONS);noteTemplate=DEFAULT_NOTE_TEMPLATE;guideReminders=[];noteTemplateBox.value=noteTemplate;render(false);setToast('Factory reset complete')}};
+factoryBtn.onclick=()=>{if(confirm(`Reset the ${activeTemplate().shortTitle} structure, note template and meeting suggestions in this browser? Patient answers will also clear.`)){localStorage.removeItem(storageKey('sections'));localStorage.removeItem(storageKey('suggestions'));localStorage.removeItem(storageKey('note_template'));sections=clone(templateDefaults());noteTemplate=activeTemplate().defaultNoteTemplate;guideReminders=[];noteTemplateBox.value=noteTemplate;render(false);setToast('Factory reset complete')}};
 copyBtn.onclick=async()=>{await navigator.clipboard.writeText(output.value);setToast('Note copied')};
 resetAnswersBtn.onclick=()=>{guideReminders=[];render(false)};
 noteTemplateBox.value=noteTemplate;
-noteTemplateBox.oninput=()=>{noteTemplate=noteTemplateBox.value||DEFAULT_NOTE_TEMPLATE;saveTemplate();gen()};
-resetTemplateBtn.onclick=()=>{if(confirm('Restore the default generated note format?')){noteTemplate=DEFAULT_NOTE_TEMPLATE;saveTemplate();noteTemplateBox.value=noteTemplate;gen()}};
+noteTemplateBox.oninput=()=>{noteTemplate=noteTemplateBox.value||activeTemplate().defaultNoteTemplate;saveTemplate();gen()};
+resetTemplateBtn.onclick=()=>{if(confirm('Restore the default generated note format?')){noteTemplate=activeTemplate().defaultNoteTemplate;saveTemplate();noteTemplateBox.value=noteTemplate;gen()}};
 render();
 </script>
 </body>
