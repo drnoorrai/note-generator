@@ -36,7 +36,6 @@
     <div class="hero-main">
       <p class="eyebrow" id="templateEyebrow">Oval Notes</p>
       <h1 id="notes-generator-title">Structured clinical documentation.</h1>
-      <p>Fast consultation templates that keep the note, memory aid and clinical structure in one calm workspace.</p>
       <div class="template-state">
         <span>Current template</span>
         <strong id="templateTitle">MSE Plus Note Generator</strong>
@@ -54,7 +53,7 @@
     </aside>
   </section>
 
-  <section class="templateHub" aria-label="Clinical templates">
+  <section class="templateHub" id="templateHub" aria-label="Clinical templates">
     <div class="templateHubHeader">
       <div>
         <h2>Choose a consultation template</h2>
@@ -139,6 +138,7 @@ const LEGACY_KEY='mse_sections_v3',LEGACY_SKEY='mse_suggestions_v1',LEGACY_TKEY=
 const ACTIVE_TEMPLATE_KEY='note_generator_active_template_v1';
 const templateParam=(new URLSearchParams(location.search).get('template')||'').replace(/[_\s]/g,'-').toLowerCase();
 const TEMPLATE_URL_MAP={mse:'mse','mental-state-examination':'mse','chest-pain':'chestPain',chestpain:'chestPain',chest:'chestPain'};
+const directTemplateId=TEMPLATE_URL_MAP[templateParam]||'';
 let activeTemplateId=TEMPLATE_URL_MAP[templateParam]||localStorage.getItem(ACTIVE_TEMPLATE_KEY)||'mse';
 const DEFAULT_NOTE_TEMPLATE=`Mental State Examination:
 
@@ -1155,6 +1155,11 @@ function renderTemplateHub(){
   templateTitle.textContent=current.title;
   templateSubtitle.textContent=current.subtitle;
   document.title=current.title;
+  templateHub.classList.toggle('hidden',Boolean(directTemplateId));
+  if(directTemplateId){
+    templateGrid.innerHTML='';
+    return;
+  }
   templateGrid.innerHTML=Object.values(TEMPLATES).map(t=>{
     const active=t.id===activeTemplateId;
     return `<button class="templateCard ${active?'active':''}" type="button" data-template="${esc(t.id)}" aria-pressed="${active}">
