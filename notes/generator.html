@@ -1,0 +1,1341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Clinical Note Template Generator</title>
+  <style>
+    *{box-sizing:border-box}
+    :root{--ink:#111827;--muted:#64748b;--line:#d7dee8;--panel:#fff;--soft:#f8fafc;--blue:#0f4c81;--teal:#0f766e;--amber:#92400e;--red:#991b1b;--green:#166534;--shadow:0 1px 3px #0001}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f5f7fb;color:var(--ink)}
+    .wrap{max-width:1440px;margin:auto;padding:20px}
+    .hero,.card,.panel,.navPanel{background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+    .hero{padding:22px;margin-bottom:16px}
+    .eyebrow{text-transform:uppercase;color:var(--muted);letter-spacing:.08em;font-size:12px;font-weight:800}
+    h1{margin:.25rem 0 .35rem;font-size:clamp(28px,4vw,42px);line-height:1.08}
+    h2{margin:0 0 12px;font-size:20px}
+    h3{margin:0 0 8px;font-size:16px}
+    .muted{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:220px minmax(0,1fr) 440px;gap:16px;align-items:start}
+    .navPanel,.sticky{position:sticky;top:16px}
+    .sticky{max-height:calc(100vh - 32px);overflow:auto;padding-bottom:2px}
+    .navPanel{padding:12px}
+    .navTitle{font-weight:850;margin:2px 0 10px}
+    .navBtn{width:100%;border:0;background:transparent;color:#334155;text-align:left;border-radius:8px;padding:8px 9px;cursor:pointer;display:flex;gap:8px;align-items:center;justify-content:space-between}
+    .navBtn:hover,.navBtn.active{background:#eaf4f3;color:#0f4c81}
+    .count{font-size:12px;color:#475569;background:#e2e8f0;border-radius:999px;padding:2px 7px}
+    .card{padding:18px;margin-bottom:14px}
+    .sectionHead{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+    .sectionTools{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .field{margin:16px 0}
+    .label{font-size:14px;font-weight:850;color:#334155;margin-bottom:8px}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{border:1px solid #cbd5e1;background:#fff;color:#334155;border-radius:999px;padding:8px 12px;cursor:pointer;font-size:14px}
+    .chip.active{background:#0f172a;color:white;border-color:#0f172a}
+    textarea,input,select{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:10px 11px;font:inherit;background:white}
+    textarea{min-height:76px}
+    details{margin-top:8px;background:var(--soft);border:1px solid #e2e8f0;border-radius:8px;padding:10px;color:#475569;font-size:14px}
+    summary{cursor:pointer;font-weight:850;color:#334155}
+    .help,.reference,.promptBox{background:#f1f5f9;border-radius:8px;padding:10px;color:#475569;font-size:14px;margin-top:8px}
+    .reference{border-left:4px solid var(--teal)}
+    .contentBlock{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin:8px 0;padding:10px;color:#475569;font-size:14px}
+    .contentBlock.clinical{border-left:4px solid var(--blue)}
+    .contentBlock.interview{border-left:4px solid var(--amber)}
+    .contentBlock.referenceBlock{border-left:4px solid var(--teal)}
+    .contentBlock summary{display:flex;gap:8px;align-items:center}
+    .blockEditor{border:1px solid #dbe3ee;border-radius:8px;background:#fff;padding:10px;margin-top:8px}
+    .blockList{display:grid;gap:10px}
+    .optionWordings{display:grid;gap:8px}
+    .optionWording{display:grid;grid-template-columns:minmax(120px,180px) 1fr;gap:8px;align-items:start}
+    .optionName{font-size:13px;font-weight:850;color:#334155;padding-top:9px}
+    .flagRow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .flag{font-size:11px;font-weight:800;border-radius:999px;padding:3px 7px;background:#e2e8f0;color:#334155;text-transform:uppercase}
+    .flag.risk{background:#fee2e2;color:#991b1b}.flag.organic{background:#fef3c7;color:#92400e}.flag.mania{background:#dbeafe;color:#1d4ed8}.flag.psychosis{background:#ede9fe;color:#6d28d9}.flag.capacity{background:#dcfce7;color:#166534}
+    .output{height:38vh;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:1.5;background:#f8fafc}
+    .actions,.row{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap}
+    .btn{border:0;background:#0f172a;color:white;border-radius:8px;padding:10px 13px;font-weight:850;cursor:pointer}
+    .btn.secondary{background:white;color:#0f172a;border:1px solid #cbd5e1}
+    .btn.danger{background:var(--red)}
+    .btn.small{padding:6px 9px;font-size:12px;border-radius:7px}
+    .btn.teal{background:var(--teal)}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+    .toggle{display:flex;align-items:center;gap:7px;font-size:14px;color:#334155}
+    .editbar{display:none;margin-bottom:16px}.editbar.on{display:block}
+    .panel{padding:16px;border-color:#bfdbfe;background:#eff6ff}
+    .editTools{display:none;margin-top:10px;padding:12px;border-radius:8px;background:#f8fafc;border:1px dashed #cbd5e1}
+    .editing .editTools{display:block}
+    .editGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .editGrid .wide{grid-column:1/-1}
+    .pill{display:inline-block;background:#dbeafe;color:#1e3a8a;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:850}
+    .suggestion{border:1px solid #e2e8f0;border-radius:8px;padding:10px;margin-top:10px;background:#fff}
+    .noteTools{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
+    .inlineAdd{display:none;gap:8px;margin-top:8px}
+    .editing .inlineAdd{display:flex}
+    .toast{min-height:22px;color:#166534;font-weight:800;font-size:13px}
+    .templateHub{margin-bottom:16px}
+    .templateHubHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .templateHubHeader h2{margin:0}
+    .templateGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .templateCard{border:1px solid var(--line);background:#fff;border-radius:8px;padding:14px;text-align:left;cursor:pointer;box-shadow:var(--shadow);display:grid;gap:8px}
+    .templateCard:hover,.templateCard.active{border-color:#0f4c81;background:#f8fbff}
+    .templateCard.active{box-shadow:0 0 0 3px #bfdbfe}
+    .templateCardTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:900;color:#0f172a}
+    .templateCard p{margin:0;color:#64748b;font-size:14px;line-height:1.45}
+    .templateMeta{display:flex;gap:6px;flex-wrap:wrap}
+    .savedFlash{box-shadow:0 0 0 3px #86efac;background:#166534!important;color:#fff!important}
+    body:not(.studyMode) .contentBlock,body:not(.studyMode) .quickRefCard{display:none}
+    .guideIntro{margin:0 0 10px;font-size:13px;color:#64748b}
+    .guide{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;margin-top:8px;padding:0;color:#334155}
+    .guide summary{padding:10px 11px;display:flex;gap:8px;align-items:center}
+    .guideBody{border-top:1px solid #e2e8f0;padding:10px 11px}
+    .guide ul{margin:8px 0 10px;padding-left:18px}
+    .guide li{margin:4px 0}
+    .guideBlock{margin-top:10px}
+    .guideBlockTitle{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:850;margin-bottom:5px}
+    .guidePhrase{border-left:3px solid #cbd5e1;background:#fff;border-radius:6px;padding:8px 9px;margin-top:6px;font-size:13px;color:#334155}
+    .guideMeta{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+    .guideFlow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
+    .guideFlow span{background:#eaf4f3;border:1px solid #b7d8d3;border-radius:7px;padding:7px 6px;text-align:center;font-size:12px;font-weight:800;color:#0f4c81}
+    .guideActions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:8px}
+    .guideSource{font-size:12px;color:#64748b}
+    .guideSource a{color:#0f4c81}
+    .guideAdded{background:#dcfce7;color:#166534;border-radius:999px;padding:3px 7px;font-size:11px;font-weight:850}
+    @media(max-width:1120px){.grid{grid-template-columns:1fr}.navPanel,.sticky{position:static}.sticky{max-height:none;overflow:visible}.output{height:42vh}.navPanel{display:none}}
+    @media(max-width:720px){.wrap{padding:12px}.hero,.card{border-radius:8px;padding:14px}.editGrid{grid-template-columns:1fr}.sectionHead{display:block}.sectionTools{justify-content:flex-start}.btn{padding:9px 11px}.output{height:38vh}.guideFlow{grid-template-columns:1fr 1fr}.optionWording{grid-template-columns:1fr}.templateGrid{grid-template-columns:1fr}.templateHubHeader{display:block}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow" id="templateEyebrow">Open Source Tool Developed by Resident Doctors at Oxleas NHS Foundation Trust - For Educational Purposes Only</div>
+    <h1 id="templateTitle">MSE Plus Note Generator</h1>
+    <p class="muted" id="templateSubtitle">Structured MSE documentation with phenomenology prompts, risk formulation cues, and reference-only clinical reminders.</p>
+    <div class="actions">
+      <button class="btn secondary" id="editModeBtn">Edit mode</button>
+      <button class="btn secondary" id="studyModeBtn">Study Mode</button>
+      <button class="btn secondary" id="resetAnswersBtn">Reset patient answers</button>
+      <button class="btn secondary" id="factoryBtn">Factory reset tool</button>
+    </div>
+  </header>
+
+  <section class="templateHub" aria-label="Clinical templates">
+    <div class="templateHubHeader">
+      <div>
+        <h2>Choose a consultation template</h2>
+        <p class="muted" style="margin:.25rem 0 0">Start with a ready-made structure, then edit it for your team or specialty.</p>
+      </div>
+    </div>
+    <div class="templateGrid" id="templateGrid"></div>
+  </section>
+
+  <section class="editbar" id="editBar">
+    <div class="panel">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <span class="pill">Team editing mode</span>
+          <h2 style="margin:.45rem 0 .2rem">Edit the tool safely</h2>
+          <p class="muted" style="margin:0">Change sections, answers, note wording, prompts, references, and export/import the full configuration. All edits save in this browser until pushed into the app defaults.</p>
+        </div>
+        <button class="btn secondary" id="closeEditBtn">Close editor</button>
+      </div>
+      <div class="editGrid" style="margin-top:14px">
+        <div>
+          <label class="label">Quick suggestion / meeting note</label>
+          <textarea id="suggestionText" placeholder="Example: Add sleep reversal to Biological symptoms..."></textarea>
+          <div class="row" style="margin-top:8px;justify-content:flex-start">
+            <button class="btn" id="addSuggestionBtn">Add suggestion</button>
+            <button class="btn secondary" id="copySuggestionsBtn">Copy suggestions</button>
+          </div>
+          <div id="suggestions"></div>
+        </div>
+        <div>
+          <label class="label">Import / export configuration</label>
+          <textarea id="configBox" placeholder="Exported JSON appears here. Paste edited JSON here and click Import."></textarea>
+          <div class="row" style="margin-top:8px;justify-content:flex-start">
+            <button class="btn" id="exportBtn">Export JSON</button>
+            <button class="btn secondary" id="importBtn">Import JSON</button>
+          </div>
+          <p class="muted" id="importStatus" style="font-size:12px">Import validates sections and fields before applying changes. Export JSON to save a local copy of your custom note design.</p>
+        </div>
+      </div>
+      <div class="editTools" style="display:block;margin-top:14px">
+        <label class="label">Generated note template</label>
+        <textarea id="noteTemplateBox" placeholder="Use placeholders such as {{sections}}, {{riskSummary}}, {{organicRedFlags}}"></textarea>
+        <div class="row" style="margin-top:8px;justify-content:flex-start">
+          <button class="btn secondary" id="resetTemplateBtn">Restore default note format</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="grid">
+    <nav class="navPanel">
+      <div class="navTitle">Sections</div>
+      <div id="sectionNav"></div>
+    </nav>
+
+    <section id="form"></section>
+
+    <aside class="sticky">
+      <div class="card">
+        <div class="sectionHead">
+          <div>
+            <h2>Generated clinical note</h2>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="copyBtn">Copy note</button>
+        </div>
+        <div class="toast" id="toast"></div>
+        <textarea id="output" class="output" readonly></textarea>
+      </div>
+      <div class="card quickRefCard">
+        <h2>Quick reference</h2>
+        <p class="guideIntro">Open only when needed. Add a reminder if it should appear in the generated note.</p>
+        <div id="quickGuides"></div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script>
+const LEGACY_KEY='mse_sections_v3',LEGACY_SKEY='mse_suggestions_v1',LEGACY_TKEY='mse_note_template_v1';
+const ACTIVE_TEMPLATE_KEY='note_generator_active_template_v1';
+let activeTemplateId=localStorage.getItem(ACTIVE_TEMPLATE_KEY)||'mse';
+const DEFAULT_NOTE_TEMPLATE=`Mental State Examination:
+
+{{sections}}`;
+const QUICK_GUIDES=[
+  {
+    id:'psychosis',
+    title:'Psychosis / FEP guide',
+    tags:['CG178','FEP','Monitoring'],
+    flow:['Presenting change','Phenomenology','Risk/capacity','Monitoring'],
+    bullets:[
+      'Anchor the letter in change from baseline, duration, stressors/substances, collateral and functional impact.',
+      'Phenomenology: voices, delusional conviction, thought form, passivity/first-rank symptoms, insight and behaviour.',
+      'Differentiate affective psychosis by documenting mood syndrome, mood congruence, sleep/activity and psychomotor change.',
+      'If antipsychotics are relevant, note discussion/monitoring themes: side effects, akathisia versus agitation, movement disorder, adherence and physical health.'
+    ],
+    document:[
+      'Onset, duration, course and collateral source.',
+      'Examples in the patient’s own words, especially for delusions/voices.',
+      'Impact on behaviour, relationships, self-care, work/study and safeguarding.',
+      'Insight: awareness, relabelling and attitude to support/treatment.'
+    ],
+    phrases:[
+      'There was evidence of psychotic phenomena in the form of [phenomena], with [degree] conviction and [behavioural impact].',
+      'The content was [mood congruent/incongruent], and I have considered affective psychosis given [mood/sleep/activity findings].',
+      'There were no features today to suggest delirium or an acute organic confusional state, specifically [orientation/attention/consciousness findings].'
+    ],
+    note:'Psychosis/FEP reference reminder used: phenomenology, affective screen, organic screen, risk/capacity and antipsychotic physical-health monitoring were considered.',
+    source:'NICE CG178 psychosis and schizophrenia in adults',
+    url:'https://www.nice.org.uk/guidance/cg178/chapter/rec'
+  },
+  {
+    id:'risk',
+    title:'Risk formulation guide',
+    tags:['NG225','Suicide','Safeguarding'],
+    flow:['Needs','Drivers','Means','Safety plan'],
+    bullets:[
+      'NICE recommends risk formulation as part of psychosocial assessment; avoid relying on global low/medium/high prediction labels.',
+      'Suicide sequence: passive thoughts, active ideation, plan, intent, preparation, rehearsal, previous attempts and access to means.',
+      'Dynamic drivers: mood, psychosis, command hallucinations, shame, substances, insomnia, agitation, pain, social stressors and recent losses.',
+      'Protective factors should be concrete and tested: relationships, responsibilities, beliefs, engagement, future plans and ability to seek help.'
+    ],
+    document:[
+      'Current thoughts, intent, preparation, means and immediacy.',
+      'Historical risk and recent change from usual pattern.',
+      'Violence/safeguarding: target, access to weapons, command phenomena, dependants and exploitation.',
+      'Agreed safety actions, who is informed, escalation plan and limits of protective factors.'
+    ],
+    phrases:[
+      'My risk formulation is that risk is currently driven by [drivers] and mitigated by [protective factors], with [access/no access] to means.',
+      'The patient denied current suicidal intent, plan, preparation or access to means; this was considered alongside [history/current stressors].',
+      'I have not used a global risk score as a prediction tool; the formulation above reflects current needs, dynamic factors and immediate safety planning.'
+    ],
+    note:'Risk reference reminder used: ideation sequence, intent/means, dynamic drivers, command phenomena, safeguarding and protective factors were considered using clinical judgement rather than global risk stratification.',
+    source:'NICE NG225 self-harm recommendations',
+    url:'https://www.nice.org.uk/guidance/ng225/chapter/1-recommendations'
+  },
+  {
+    id:'organic',
+    title:'Organic red flags',
+    tags:['Delirium','Neurology','Medical'],
+    flow:['Onset','Consciousness','Cognition','Neurology'],
+    bullets:[
+      'Escalate concern with very early/late onset, rapid onset, fluctuating consciousness, disorientation or rapid cognitive decline.',
+      'Prominent visual hallucinations, seizures, focal neurology, headache/meningism or autonomic instability should prompt medical/organic consideration.',
+      'Consider medication/substance causes, withdrawal states, infection, endocrine/metabolic causes and neurological disease.',
+      'A clean letter explains what was checked and why the current presentation is or is not consistent with delirium/organic illness.'
+    ],
+    document:[
+      'Level of consciousness, orientation, attention and fluctuation.',
+      'Neurological symptoms/signs, seizures, headache/meningism and autonomic instability.',
+      'Substances, new medications, withdrawal, physical observations and collateral timeline.',
+      'Whether medical assessment/investigations were considered, advised or already completed.'
+    ],
+    phrases:[
+      'There were [no/some] organic red flags: consciousness was [clear/fluctuating], orientation was [findings], and attention was [findings].',
+      'Given [rapid onset/visual hallucinations/focal signs/seizures], I considered an organic differential and [advised/escalated/arranged] further medical review.',
+      'The temporal relationship with [substance/medication/withdrawal/physical illness] was explored and documented.'
+    ],
+    note:'Organic reference reminder used: onset, fluctuation, orientation, cognition, visual phenomena, seizure/neurological signs, substances and medication causes were considered.',
+    source:'MSE Plus educational organic screen',
+    url:''
+  },
+  {
+    id:'capacity',
+    title:'MCA capacity guide',
+    tags:['MCA','Use/weigh','Decision-specific'],
+    flow:['Decision','Impairment','Functional test','Best interests'],
+    bullets:[
+      'Capacity is decision-specific and time-specific; start from the presumption of capacity.',
+      'Record whether the person can understand, retain, use/weigh and communicate the relevant information.',
+      'Psychosis may particularly affect use/weigh even where understanding and retention are intact.',
+      'Do not equate an unwise decision with incapacity; link any inability to the impairment/disturbance.'
+    ],
+    document:[
+      'The exact decision and the relevant information explained.',
+      'What support was offered to aid decision-making, including communication needs/interpreter/collateral.',
+      'Evidence for understand, retain, use/weigh and communicate, ideally with examples of the patient’s answers.',
+      'If lacking capacity: causative link, least restrictive option, best-interests reasoning and who was consulted.'
+    ],
+    phrases:[
+      'Capacity was assessed for the specific decision of [decision] at the time of assessment.',
+      'The patient was able/unable to understand [information], retain it long enough to decide, use/weigh it in relation to [consequence], and communicate a choice.',
+      'Any difficulty with use/weigh appeared linked to [psychotic belief/cognitive impairment/mood state], rather than simply an unwise decision.'
+    ],
+    note:'MCA reference reminder used: the decision, impairment/disturbance, understand-retain-use/weigh-communicate elements and decision/time specificity were considered.',
+    source:'Mental Capacity Act Code of Practice',
+    url:'https://www.gov.uk/government/publications/mental-capacity-act-code-of-practice'
+  },
+  {
+    id:'medicines',
+    title:'Medication safety reminders',
+    tags:['Valproate','Lithium','Physical health'],
+    flow:['Baseline','Side effects','Monitoring','Shared care'],
+    bullets:[
+      'For antipsychotics, NICE monitoring themes include response, side effects, movement disorders, weight, waist, pulse/BP, glucose/HbA1c, lipids, adherence and overall physical health.',
+      'Ask side effects in language patients recognise: restlessness/akathisia, stiffness, tremor, sedation, sexual dysfunction, constipation, hypersalivation, dizziness and weight change.',
+      'For valproate, current MHRA/NICE restrictions are important, especially under 55 and pregnancy prevention requirements; use local specialist pathways.',
+      'Lithium/valproate/clozapine reminders should trigger local monitoring responsibilities, blood tests, physical health checks and communication with GP/secondary care.'
+    ],
+    document:[
+      'Medication name/dose if known, adherence, benefit, side effects and patient preference.',
+      'Physical health monitoring status and who is responsible for follow-up.',
+      'Pregnancy/reproductive safety discussion where relevant, without giving tool-generated prescribing advice.',
+      'Communication to GP/community team about monitoring or side-effect concerns.'
+    ],
+    phrases:[
+      'Medication tolerability was reviewed, including extrapyramidal symptoms/akathisia, metabolic effects, sedation and anticholinergic burden.',
+      'Physical health monitoring was considered in line with antipsychotic monitoring themes, including weight/metabolic/cardiovascular parameters and movement disorder review.',
+      'Valproate safety restrictions and local specialist prescribing pathways should be checked before any valproate-related decision.'
+    ],
+    note:'Medication safety reference reminder used: physical-health monitoring, side effects, movement disorders, adherence, valproate restrictions and local specialist monitoring pathways were considered.',
+    source:'NICE CG178/CG185 and MHRA valproate safety update',
+    url:'https://www.gov.uk/government/news/new-valproate-safety-measures-apply-from-31-january'
+  },
+  {
+    id:'differential',
+    title:'Differential pattern guide',
+    tags:['Mania','Delirium','Depression'],
+    flow:['Mood','Thought','Perception','Cognition'],
+    bullets:[
+      'Mania: reduced need for sleep, pressure, grandiosity, disinhibition, increased activity, irritability, spending/sexual risk and flight of ideas.',
+      'Schizophrenia-spectrum: persistent psychosis, thought disorder, negative symptoms, functional decline and less prominent sustained mood syndrome.',
+      'Psychotic depression: severe depression with guilt, nihilistic/somatic delusions, derogatory voices, psychomotor change and high suicide risk.',
+      'Delirium/organic: acute or fluctuating course, impaired attention/orientation, altered consciousness and prominent visual phenomena.'
+    ],
+    document:[
+      'Most likely syndrome and the positive evidence for it.',
+      'Key alternatives considered and what argues for/against each.',
+      'Uncertainty, missing collateral and what would change the formulation.',
+      'How risk, capacity and organic screen affect next steps.'
+    ],
+    phrases:[
+      'Overall, the presentation is most consistent with [syndrome] because [positive evidence].',
+      'Important differentials include [differentials]; these are less likely today because [negative evidence], though [uncertainty] remains.',
+      'The formulation is provisional pending [collateral/substance screen/medical workup/longitudinal observation].'
+    ],
+    note:'Differential reference reminder used: schizophrenia-spectrum, mania, psychotic depression, substance/organic and delirium patterns were considered.',
+    source:'NICE CG178, CG185 and NG222 themes',
+    url:'https://www.nice.org.uk/guidance/cg185'
+  },
+  {
+    id:'letter',
+    title:'UK letter structure',
+    tags:['Clinic letter','GP','MDT'],
+    flow:['Why seen','Findings','Formulation','Actions'],
+    bullets:[
+      'Write for the GP/MDT: reason for contact, source of information, salient positives and important negatives.',
+      'Avoid a raw checklist feel: group MSE findings into coherent paragraphs and include verbatim examples where they change meaning.',
+      'Make risk and capacity explicit if relevant; state uncertainty and what has been safety-netted.',
+      'End with clear actions: what has been advised, who is responsible, what to monitor and when to escalate.'
+    ],
+    document:[
+      'Who was present, consent/collateral, setting and reliability of history.',
+      'Patient perspective and agreed/disputed points.',
+      'Impression/formulation, not just diagnosis.',
+      'Plan, referrals, follow-up, crisis advice and communication copied to relevant parties.'
+    ],
+    phrases:[
+      'Thank you for asking me to review [patient] regarding [reason]. I saw them [with/without] [collateral] and the following is based on [sources].',
+      'In summary, the key findings were [findings]. My impression is [formulation], with [risk/capacity/organic considerations].',
+      'The agreed plan is [plan]. Please monitor [items] and seek urgent advice if [safety-net triggers].'
+    ],
+    note:'Letter-structure reminder used: reason for contact, sources/collateral, salient positives and negatives, formulation, risk/capacity, actions and safety-netting were considered.',
+    source:'MSE Plus UK clinical documentation prompt',
+    url:''
+  }
+];
+const DEFAULT_SECTIONS=[
+  {title:'Appearance & Behaviour',helper:'Observe change from baseline as well as absolute presentation.',reference:'Mania often presents as an acute departure from baseline with flamboyant dress, agitation, disinhibition and risk behaviours. Psychosis may show suspiciousness, guardedness or odd behaviour while consciousness remains clear.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'baseline',label:'Baseline change',type:'single',options:['No clear change','Clear change from baseline','Unknown baseline'],note:'Baseline change was recorded as {{value}}.',help:'Change from baseline can be more clinically meaningful than absolute appearance.',prompts:['How does this compare with their usual presentation?']},
+    {id:'selfCare',label:'Self-care',type:'single',options:['Good','Reduced','Neglected','Marked deterioration'],note:'Self-care appeared {{value}}.',help:'Include hygiene, grooming, nutrition and ability to maintain basic personal care.'},
+    {id:'dress',label:'Dress',type:'multi',options:['Appropriate','Bizarre','Flamboyant','Disinhibited','Clashing','Unkempt'],note:'Dress was {{value}}.',flags:['mania','psychosis']},
+    {id:'engagement',label:'Engagement',type:'multi',options:['Good','Guarded','Suspicious','Hostile','Intrusive','Overfamiliar'],note:'Engagement was {{value}}.',flags:['risk','mania','psychosis']},
+    {id:'eyeContact',label:'Eye contact',type:'single',options:['Normal','Avoidant','Intense','Poorly sustained'],note:'Eye contact was {{value}}.'},
+    {id:'psychomotor',label:'Psychomotor activity',type:'multi',options:['Normal','Retardation','Agitation','Restless','Pacing','Catatonic features','Posturing','Mutism'],note:'Psychomotor activity was {{value}}.',flags:['mania','organic','psychosis']},
+    {id:'riskObserved',label:'Risk behaviour observed',type:'multi',options:['None','Disinhibition','Intrusiveness','Sexual behaviour','Aggression','Spending','Dangerous driving','Self-neglect'],note:'Observed risk behaviours included {{value}}.',flags:['risk','mania']},
+    {id:'appearanceNotes',label:'Notes',type:'text',note:'Additional appearance and behaviour notes: {{value}}.'}
+  ]},
+  {title:'Speech',helper:'Document rate, pressure, interruptibility and examples where possible.',reference:'Pressured speech and flight of ideas point toward mania. Alogia and poverty of content are negative thought-form findings and should be distinguished from simple quietness.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'speechRate',label:'Rate',type:'single',options:['Normal','Slow','Rapid','Pressured','Pressured but interruptible','Pressured and difficult to interrupt'],note:'Speech rate was {{value}}.',help:'Pressured speech is rapid, difficult to interrupt and often irritability-provoking if interrupted.',flags:['mania']},
+    {id:'speechVolume',label:'Volume',type:'single',options:['Normal','Quiet','Loud','Variable'],note:'Volume was {{value}}.'},
+    {id:'speechQuantity',label:'Quantity',type:'single',options:['Normal','Poverty','Increased','Excessive','Minimal elaboration'],note:'Speech quantity was {{value}}.',flags:['psychosis','mania']},
+    {id:'speechForm',label:'Form',type:'multi',options:['Coherent','Circumstantial','Tangential','Flight of ideas','Loosening of associations','Incoherent','Thought blocking','Perseveration','Echolalia','Alogia','Poverty of content'],note:'Speech and thought form showed {{value}}.',help:'Circumstantiality returns to the point; tangentiality does not. Flight of ideas has traceable links; loosening loses logical connection.',prompts:['Can you give me an example?','I noticed the thread changed there; can we go back to the question?'],flags:['psychosis','mania','organic']},
+    {id:'latency',label:'Latency',type:'single',options:['Normal','Increased','Markedly increased'],note:'Response latency was {{value}}.'},
+    {id:'verbatimSpeech',label:'Verbatim examples',type:'text',note:'Verbatim speech example: “{{value}}”.',help:'Verbatim examples are often more clinically useful than labels alone.'}
+  ]},
+  {title:'Mood & Affect',helper:'Include subjective mood, objective affect, biological symptoms, bipolar flags and medication side effects.',reference:'Bipolar depression may show hypersomnia, hyperphagia, leaden paralysis and mood reactivity. Mixed states carry high suicide risk because energy and impulsivity coexist with hopelessness.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'mood',label:'Subjective mood',type:'multi',options:['Low','Euthymic','Elevated','Expansive','Irritable','Anxious','Labile','Hopeless'],note:'Subjectively, mood was {{value}}.',prompts:['How have you been feeling in yourself?','Have there been periods unusually high or low?'],flags:['mania','risk']},
+    {id:'moodScore',label:'Mood score /10',type:'short',note:'Mood was rated {{value}}/10.'},
+    {id:'affect',label:'Objective affect',type:'multi',options:['Congruent','Incongruent','Reactive','Blunted','Flat','Labile','Expansive','Tearful'],note:'Objectively, affect was {{value}}.',help:'Mood-incongruent affect may point away from straightforward mood disorder.',flags:['mania','psychosis']},
+    {id:'biological',label:'Biological symptoms and medication side effects',type:'multi',options:['None','Reduced sleep','Increased sleep','Reduced need for sleep','Early morning waking','Hypersomnia','Reduced appetite','Increased appetite','Weight loss','Weight gain','Reduced energy','Anhedonia','Reduced libido','Reduced concentration','Diurnal mood variation','Leaden paralysis','Hypersalivation','Tachycardia','Palpitations','Dizziness','Constipation','Akathisia/restlessness'],note:'Biological symptoms and medication side effects included {{value}}.',prompts:['How has sleep changed?','Any change in appetite, weight, energy or concentration?','Any stiffness, restlessness, tremor, constipation or hypersalivation since medication?'],flags:['mania','risk']},
+    {id:'bipolarFlags',label:'Bipolar spectrum flags',type:'multi',options:['None','Hypersomnia','Hyperphagia','Mood reactivity','Leaden paralysis','Reduced need for sleep','Increased activity','Impulsive spending','Risky sexual behaviour','Family history of bipolar','Antidepressant activation'],note:'Bipolar-spectrum flags included {{value}}.',prompts:['Have you had periods needing much less sleep but felt full of energy?','Has anyone said you were talking too fast or not yourself?'],flags:['mania','risk']},
+    {id:'moodNotes',label:'Notes',type:'text',note:'Additional mood and affect notes: {{value}}.'}
+  ]},
+  {title:'Thought — Form',helper:'Observed from speech rather than asked directly. Add verbatim examples.',reference:'Positive formal thought disorder includes loosening, tangentiality, flight of ideas, word salad, neologisms, clang associations, perseveration and blocking. Negative FTD includes alogia and poverty of content.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'thoughtForm',label:'Thought form',type:'multi',options:['Linear','Circumstantial','Tangential','Flight of ideas','Loosening of associations','Word salad','Neologisms','Clang associations','Blocking','Perseveration','Echolalia','Alogia','Poverty of content'],note:'Thought form was {{value}}.',help:'Flight of ideas has rapid but traceable links. Loosening has loss of logical connection. Blocking may be linked to passivity experiences.',flags:['psychosis','mania','organic']},
+    {id:'thoughtFormSeverity',label:'Severity / impact',type:'single',options:['Mild','Moderate','Severe','Not assessable'],note:'Thought-form disturbance was {{value}} in severity.'},
+    {id:'thoughtFormVerbatim',label:'Verbatim example',type:'text',note:'Thought form verbatim example: “{{value}}”.'}
+  ]},
+  {title:'Thought — Content',helper:'Explore beliefs gently, including conviction, doubt, behaviour and cultural context.',reference:'Primary delusions include autochthonous delusions, delusional perception, delusional mood and delusional memory. Overvalued ideas retain some ability to conceive of being wrong.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'delusions',label:'Delusions / abnormal beliefs',type:'multi',options:['None','Persecutory','Referential','Grandiose','Nihilistic/Cotard','Erotomanic','Jealous/Othello','Somatic','Guilt-laden','Capgras','Fregoli','Passivity-related','Folie a deux'],note:'Thought content included {{value}}.',flags:['psychosis','mania','risk']},
+    {id:'phenomenology',label:'Phenomenology',type:'multi',options:['Primary','Autochthonous','Delusional perception','Delusional mood','Delusional memory','Secondary','Overvalued idea','Partial doubt'],note:'Belief phenomenology was {{value}}.',help:'Primary delusions arise without understandable psychological context; secondary delusions arise from another experience such as voices.',flags:['psychosis']},
+    {id:'intensity',label:'Conviction / intensity',type:'single',options:['Fixed','High conviction','Partial doubt','Can consider alternative explanations','Overvalued idea'],note:'Conviction was {{value}}.'},
+    {id:'certainty',label:'Certainty / doubt detail',type:'text',note:'Certainty and doubt were described as follows: {{value}}.'},
+    {id:'impactBehaviour',label:'Impact on behaviour',type:'text',note:'Impact on behaviour: {{value}}.',flags:['risk']},
+    {id:'negativeTriad',label:'Depressive thought content',type:'multi',options:['Worthlessness','Hopelessness','Guilt','Self-blame','Nihilism','Rumination','No future'],note:'Depressive thought content included {{value}}.',flags:['risk']}
+  ]},
+  {title:'Passivity / First-rank Symptoms',helper:'Ask carefully and document the patient’s own language.',reference:'Schneiderian first-rank symptoms include thought insertion, withdrawal, broadcasting, made feelings, made impulses/actions, running commentary, voices arguing and thought echo.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'frs',label:'Features',type:'multi',options:['None','Thought insertion','Thought withdrawal','Thought broadcasting','Made actions','Made feelings','Made impulses','Thought echo','Running commentary','Voices arguing'],note:'Passivity/first-rank symptoms included {{value}}.',prompts:['Do your thoughts ever feel put into your mind or taken out?','Do you ever feel an outside force controls your actions or feelings?'],flags:['psychosis','risk']},
+    {id:'frsNotes',label:'Notes',type:'text',note:'Passivity phenomena notes: {{value}}.'}
+  ]},
+  {title:'Perception',helper:'Separate hallucinations from illusions, pseudohallucinations and sleep-related phenomena.',reference:'Prominent visual hallucinations, fluctuating consciousness or disorientation should raise concern for organic causes. Command hallucinations require content, target, compulsion, past compliance and access to means.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'auditory',label:'Auditory phenomena',type:'multi',options:['None','Second-person voices','Third-person voices','Running commentary','Thought echo','Voices arguing','Command hallucinations','Mood-congruent accusatory voices','Mood-congruent grandiose voices'],note:'Auditory phenomena included {{value}}.',flags:['psychosis','risk']},
+    {id:'voiceFeatures',label:'Voice features',type:'multi',options:['Distressing','Frequent','Recognised voice','Internal subjective space','External space','Retained insight','Poor insight'],note:'Voice-related features included {{value}}.'},
+    {id:'commandHallucinations',label:'Command hallucination assessment',type:'multi',options:['None','Content elicited','Compulsion to obey','Past compliance','Specific target','Access to means','Can resist commands','Cannot resist commands'],note:'Command hallucination assessment identified {{value}}.',prompts:['What do they tell you to do?','Do you feel compelled to obey?','Have you acted on them before?'],flags:['risk','psychosis']},
+    {id:'otherModalities',label:'Other modalities',type:'multi',options:['Visual','Olfactory','Gustatory','Somatic','Lilliputian','Unpleasant burning smell','Rotting smell'],note:'Other perceptual modalities included {{value}}.',flags:['organic','psychosis']},
+    {id:'perceptionDifferentiation',label:'Differentiation',type:'multi',options:['Hallucination','Illusion','Pseudohallucination','Hypnagogic/hypnopompic','Possible delirium/organic'],note:'Perceptual experiences were considered in relation to {{value}}.',flags:['organic']},
+    {id:'perceptionNotes',label:'Notes',type:'text',note:'Additional perception notes: {{value}}.'}
+  ]},
+  {title:'Cognition',helper:'Screen orientation, attention, memory, abstraction and organic red flags.',reference:'Cognitive impairment is core in schizophrenia but should be relatively stable. Acute fluctuation, disorientation, amnesia or rapid decline suggests delirium/organic pathology.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'orientation',label:'Orientation',type:'multi',options:['Time intact','Place intact','Person intact','Disoriented to time','Disoriented to place','Disoriented to person'],note:'Orientation findings included {{value}}.',flags:['organic']},
+    {id:'attention',label:'Attention',type:'multi',options:['Serial 7s','WORLD backwards','Digit span','Distractible','Poorly sustained','Not assessed'],note:'Attention was assessed using {{value}}.',flags:['organic','mania']},
+    {id:'memory',label:'Memory',type:'multi',options:['Not assessed','Immediate intact','Short-term intact','Long-term intact','Immediate impaired','Short-term impaired','Amnesia'],note:'Memory findings included {{value}}.',flags:['organic']},
+    {id:'executive',label:'Executive / abstraction',type:'multi',options:['Abstract thinking intact','Concrete proverb interpretation','Similarities impaired','Planning impaired','Cognitive flexibility impaired','Reduced function'],note:'Executive function findings included {{value}}.',flags:['organic','psychosis']},
+    {id:'cognitiveRedFlags',label:'Organic cognitive red flags',type:'multi',options:['No red flags','Fluctuating consciousness','Rapid decline','Disorientation','Prominent visual hallucinations','Seizures','Headache/meningism','Focal neurology','Autonomic instability','Movement disorder'],note:'Organic cognitive red flags included {{value}}.',flags:['organic','risk']}
+  ]},
+  {title:'Insight',helper:'Document dimensions separately: awareness, relabelling and treatment acceptance.',reference:'Partial insight after psychosis can increase suicide risk when awareness of decline combines with hopelessness. Document the dimension present or absent.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'awareness',label:'Awareness of illness',type:'single',options:['Aware','Partial','None','Aware of decline only'],note:'Awareness of illness was {{value}}.',flags:['risk']},
+    {id:'relabelling',label:'Relabelling experiences',type:'single',options:['Attributes to illness','Partial relabelling','Externalises','Cannot relabel'],note:'Relabelling style was {{value}}.'},
+    {id:'treatment',label:'Treatment attitude',type:'single',options:['Accepts','Ambivalent','Refuses','Accepts support but not medication','Disengaged'],note:'Attitude to treatment was {{value}}.'},
+    {id:'insightNotes',label:'Insight notes',type:'text',note:'Additional insight notes: {{value}}.'}
+  ]},
+  {title:'Risk',helper:'Use structured clinical judgement. Document reasoning rather than a simple low/medium/high score.',reference:'NICE advises against using risk stratification tools as a substitute for clinical judgement. Assess suicidal ideation sequence, command hallucinations, violence targets, means, safeguarding and protective factors.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'suicide',label:'Suicide / self-harm',type:'multi',options:['No current ideation','Passive thoughts','Active ideation','Plan','Intent','Preparation','Rehearsal','Access to means','Previous attempt','Post-psychotic depression','Mixed state concern'],note:'Suicide risk features included {{value}}.',prompts:['Have you felt life is not worth living?','Have you thought about ending your life?','Have you made any preparations?'],flags:['risk']},
+    {id:'protective',label:'Protective factors',type:'text',options:['Family','Friends','Hobbies','Work','Partner','Limited protective factors'],note:'Protective factors: {{value}}.',flags:['risk']},
+    {id:'violence',label:'Violence / harm to others',type:'multi',options:['No obvious risk of violence','Thoughts to harm others','Command hallucinations','Delusional target','Threat-control override','History of violence','Access to weapons','Substance misuse','Irritable mania'],note:'Violence risk features included {{value}}.',flags:['risk']},
+    {id:'vulnerability',label:'Vulnerability / safeguarding',type:'multi',options:['No safeguarding concerns presently','Self-neglect','Exploitation','Children at home','Domestic abuse concern','Financial exploitation','County lines/coercion','Unable to maintain nutrition/hydration'],note:'Vulnerability and safeguarding concerns included {{value}}.',flags:['risk']},
+    {id:'riskFormulation',label:'Risk formulation',type:'text',note:'Risk formulation: {{value}}.',flags:['risk']}
+  ]},
+  {title:'Capacity',helper:'Capacity is decision-specific and time-specific. Psychosis may affect use/weigh even when understanding is intact.',reference:'MCA two-stage test: impairment/disturbance of mind or brain, then inability to understand, retain, use/weigh or communicate. Unwise decisions do not equal incapacity.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'capacity',label:'Capacity elements',type:'multi',options:['Understands','Retains','Uses/weighs','Communicates','Unable to understand','Unable to retain','Unable to use/weigh','Unable to communicate'],note:'Capacity elements assessed included {{value}}.',flags:['capacity']},
+    {id:'decisionSpecific',label:'Decision being assessed',type:'text',note:'Capacity was considered in relation to: {{value}}.',flags:['capacity']},
+    {id:'capacityNotes',label:'Delusion affecting weighing?',type:'text',note:'Capacity notes: {{value}}.',prompts:['Can they explain the decision?','Can they weigh benefits and risks outside delusional beliefs?'],flags:['capacity','psychosis']}
+  ]},
+  {title:'Differential & Organic Screen',helper:'Use this to capture formulation prompts, not as a diagnostic calculator.',reference:'Differentiate schizophrenia, mania, delirium and psychotic depression by onset, consciousness, orientation, mood/affect congruence, hallucination modality, thought content, cognition and diurnal pattern.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'differentialPattern',label:'Pattern considered',type:'multi',options:['Schizophrenia-spectrum','Bipolar mania','Bipolar depression','Mixed affective state','Delirium/organic','Psychotic depression','Substance-induced','Trauma/personality-related voices'],note:'Differential patterns considered included {{value}}.',flags:['organic','mania','psychosis']},
+    {id:'organicRedFlags',label:'Organic red flags',type:'multi',options:['None identified','Age <14 or >45 at onset','Rapid onset hours-days','Fluctuating consciousness','Acute confusion','Prominent visual hallucinations','Focal neurology','Headache/meningism','Seizures','Autonomic instability','Movement disorder','Rapid cognitive decline','Immunocompromised/postoperative','New medication/substance'],note:'Organic red flags included {{value}}.',flags:['organic','risk']},
+    {id:'workupPrompts',label:'Workup prompts',type:'multi',options:['Baseline bloods considered','ECG/QTc considered','Urine drug screen considered','MRI/EEG/LP if indicated','Autoimmune encephalitis screen if indicated','HIV/syphilis if indicated','Wilson screen if young FEP'],note:'Workup prompts documented: {{value}}.',flags:['organic']},
+    {id:'differentialNotes',label:'Differential notes',type:'text',note:'Differential formulation notes: {{value}}.'}
+  ]},
+  {title:'Reference-only Guidance',helper:'Concise reminders only. This tool does not prescribe, calculate doses, or replace current NICE/BNF/local policy.',reference:'Use current NICE/BNF/local guidelines and specialist advice. Guidance here is deliberately non-prescriptive.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'referenceReminders',label:'Reference reminders used',type:'multi',options:['NICE CG178 psychosis monitoring','NICE NG225 self-harm/risk judgement','MCA understand-retain-use/weigh-communicate','Organic red flags screen','EIP referral standard','CBTp/family intervention reminder','Antipsychotic side-effect discussion','Physical health monitoring','EPS screen','Lithium monitoring reminder','MHRA valproate under-55 restriction','Valproate PPP reminder','Clozapine pathway reminder','MHA/MCA interface reminder'],note:'Reference-only reminders considered: {{value}}.'},
+    {id:'monitoringNotes',label:'Monitoring / liaison notes',type:'text',note:'Monitoring and liaison notes: {{value}}.'}
+  ]},
+  {title:'Synthesis',helper:'Summarise syndrome, diagnosis, risk and patient perspective.',reference:'A useful synthesis links phenomenology, differential, risks, capacity and next clinical questions. Avoid replacing clinical judgement with a score.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'primarySyndrome',label:'Primary syndrome',type:'multi',options:['Psychotic','Affective','Organic','Mixed','Substance-related','Trauma-related','Unclear'],note:'Primary syndrome considered was {{value}}.'},
+    {id:'likelyDx',label:'Most likely diagnosis / formulation',type:'short',note:'Most likely diagnosis/formulation: {{value}}.'},
+    {id:'suicideRiskSummary',label:'Suicide risk summary',type:'short'},
+    {id:'violenceRiskSummary',label:'Violence risk summary',type:'short'},
+    {id:'vulnerabilityRiskSummary',label:'Vulnerability risk summary',type:'short'},
+    {id:'synthesisInsight',label:'Insight summary',type:'short',note:'Insight summary: {{value}}.'},
+    {id:'closing',label:'Anything important not asked?',type:'text',note:'The patient added: {{value}}.'}
+  ]}
+];
+
+const CHEST_PAIN_NOTE_TEMPLATE=`A&E Chest Pain Consultation:
+
+{{sections}}`;
+const CHEST_PAIN_GUIDES=[
+  {
+    id:'acs',
+    title:'ACS initial assessment reminder',
+    tags:['NICE CG95','NICE NG185','ECG/troponin'],
+    flow:['Symptoms','12-lead ECG','Troponin','Pathway'],
+    bullets:[
+      'Document the timing and nature of pain, cardiovascular risk factors, observations, ECG findings and high-sensitivity troponin pathway used locally.',
+      'Escalate immediately for ongoing ischaemic pain, concerning ECG changes, haemodynamic instability, arrhythmia, syncope or heart failure features.',
+      'NICE NG185 includes physical examination with blood pressure and heart rate, and blood tests such as troponin, creatinine, glucose and haemoglobin.',
+      'Do not let a normal ECG alone close the assessment; document repeat ECG/troponin timing according to local ACS pathway.'
+    ],
+    document:[
+      'Pain onset time, last episode, current pain status and ECG time.',
+      'Troponin timing/result and whether repeat testing is due or complete.',
+      'Aspirin/ACS pathway/senior review only where clinically appropriate and in line with local policy.',
+      'Clear plan, review triggers and discharge advice if discharged.'
+    ],
+    phrases:[
+      'ACS was considered because of [features]; ECG and troponin pathway were used according to local guidance.',
+      'There were no current features documented to suggest immediate STEMI/unstable ACS: [ECG/observations/current pain findings].',
+      'The plan was discussed with [senior/cardiology] because of [reason].'
+    ],
+    note:'ACS reminder used: pain timing, ECG, troponin pathway, observations, risk factors, senior escalation triggers and local ACS policy were considered.',
+    source:'NICE CG95 recent-onset chest pain and NICE NG185 acute coronary syndromes',
+    url:'https://www.nice.org.uk/guidance/cg95/chapter/Recommendations'
+  },
+  {
+    id:'dangerous_differentials',
+    title:'Dangerous differential reminder',
+    tags:['Dissection','PE','Pneumothorax'],
+    flow:['Aorta','PE','Lung','Other'],
+    bullets:[
+      'Aortic dissection cues: abrupt maximal tearing pain, pulse or neurological deficit, hypotension, mediastinal widening, connective tissue disease or severe hypertension.',
+      'Pulmonary embolism cues: pleuritic pain, dyspnoea, haemoptysis, syncope, tachycardia, hypoxia, unilateral leg swelling, recent surgery/immobility, cancer or pregnancy/postpartum.',
+      'Pneumothorax cues: pleuritic pain, reduced breath sounds, hyper-resonance, respiratory distress or underlying lung disease.',
+      'Also consider sepsis, pneumonia, pericarditis/myocarditis, oesophageal rupture and upper GI causes when the history points away from ACS.'
+    ],
+    document:[
+      'Specific positive and negative features for dissection, PE and pneumothorax.',
+      'Oxygen saturations, respiratory rate, pulse, blood pressure and temperature.',
+      'Chest examination, pulses/BP asymmetry and calf signs where relevant.',
+      'Imaging or scoring pathway used, if any, according to local guidance.'
+    ],
+    phrases:[
+      'I considered immediately life-threatening non-ACS causes including aortic dissection, PE and pneumothorax.',
+      'Features for dissection were [present/absent]: [pain quality/pulses/neuro/BP findings].',
+      'Features for PE were [present/absent]: [dyspnoea/pleuritic pain/VTE risks/oxygenation/calf findings].'
+    ],
+    note:'Dangerous differential reminder used: dissection, PE, pneumothorax, sepsis/pneumonia, pericarditis/myocarditis and GI causes were considered where clinically relevant.',
+    source:'A&E chest pain educational differential prompt',
+    url:''
+  }
+];
+const CHEST_PAIN_SECTIONS=[
+  {title:'Triage & First Impression',helper:'Capture time-critical facts before the story gets long.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpArrivalMode',label:'Arrival / source',type:'multi',options:['Walk-in','Ambulance','GP referral','111 referral','Brought by family','Police/other service'],note:'Arrival/source: {{value}}.'},
+    {id:'cpPainNow',label:'Current pain status',type:'single',options:['Pain-free','Ongoing chest pain','Intermittent pain','Worsening pain','Pain resolved before arrival'],note:'Current pain status was {{value}}.'},
+    {id:'cpTimeOnset',label:'Onset / last episode time',type:'short',note:'Pain onset/last episode time: {{value}}.'},
+    {id:'cpObs',label:'Initial observations',type:'text',note:'Initial observations: {{value}}.'},
+    {id:'cpEcgTiming',label:'ECG timing',type:'multi',options:['12-lead ECG done','Repeat ECG planned','Dynamic ECG change','No acute ECG change documented','ECG not yet available'],note:'ECG timing/status: {{value}}.',flags:['risk']},
+    {id:'cpImmediateConcern',label:'Immediate concern',type:'multi',options:['None apparent','Looks unwell','Haemodynamic instability','Hypoxia','Syncope/collapse','Arrhythmia','Ongoing severe pain','Diaphoresis','Vomiting'],note:'Immediate concern features included {{value}}.',flags:['risk']}
+  ]},
+  {title:'Chest Pain History',helper:'Fast SOCRATES-style memory aid plus associated symptoms.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpSite',label:'Site',type:'multi',options:['Central','Left-sided','Right-sided','Retrosternal','Epigastric','Back/interscapular','Diffuse'],note:'Pain site was {{value}}.'},
+    {id:'cpCharacter',label:'Character',type:'multi',options:['Pressure/heaviness','Tightness','Sharp','Pleuritic','Burning','Tearing/ripping','Crushing','Musculoskeletal'],note:'Pain character was {{value}}.',flags:['risk']},
+    {id:'cpRadiation',label:'Radiation',type:'multi',options:['None','Left arm','Right arm','Jaw/neck','Back','Shoulder','Epigastrium'],note:'Pain radiation: {{value}}.'},
+    {id:'cpSeverity',label:'Severity /10',type:'short',note:'Pain severity was {{value}}/10.'},
+    {id:'cpDuration',label:'Duration / pattern',type:'multi',options:['Minutes','More than 20 minutes','Hours','Intermittent episodes','Persistent','Exertional','At rest','Post-prandial'],note:'Pain duration/pattern: {{value}}.'},
+    {id:'cpTriggersRelief',label:'Triggers / relief',type:'multi',options:['Exertion','Emotion/stress','Respiration','Position','Palpation','Food','GTN response','Analgesia response','Rest improves','No clear trigger'],note:'Triggers/relieving factors: {{value}}.'},
+    {id:'cpAssociated',label:'Associated symptoms',type:'multi',options:['None','Dyspnoea','Sweating','Nausea/vomiting','Palpitations','Syncope/presyncope','Haemoptysis','Fever/cough','Leg swelling','Neurological symptoms'],note:'Associated symptoms included {{value}}.',flags:['risk']},
+    {id:'cpHistoryNotes',label:'Patient wording / extra history',type:'text',note:'Additional chest pain history: {{value}}.'}
+  ]},
+  {title:'Red Flags & Dangerous Differentials',helper:'Positive and negative prompts for conditions that should not be missed.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpAcsFlags',label:'ACS concern features',type:'multi',options:['Typical cardiac pain','Ongoing pain','Dynamic ECG changes','Raised troponin','Known IHD','Diabetes','Older age/frailty','Cocaine/stimulant use','No ACS features documented'],note:'ACS concern features: {{value}}.',flags:['risk']},
+    {id:'cpDissectionFlags',label:'Aortic dissection features',type:'multi',options:['None elicited','Abrupt maximal onset','Tearing/ripping to back','Pulse deficit','Neurological deficit','Hypotension/shock','BP differential','Connective tissue disease','Known aneurysm'],note:'Aortic dissection features: {{value}}.',flags:['risk']},
+    {id:'cpPeFlags',label:'PE features / VTE risks',type:'multi',options:['None elicited','Pleuritic pain','Dyspnoea','Hypoxia','Tachycardia','Haemoptysis','Unilateral leg swelling','Recent surgery/immobility','Previous VTE','Cancer','Pregnancy/postpartum','Oestrogen therapy'],note:'PE features/VTE risks: {{value}}.',flags:['risk']},
+    {id:'cpPneumothoraxFlags',label:'Pneumothorax / respiratory features',type:'multi',options:['None elicited','Sudden pleuritic pain','Unilateral reduced breath sounds','Respiratory distress','Known lung disease','Trauma'],note:'Pneumothorax/respiratory features: {{value}}.',flags:['risk']},
+    {id:'cpOtherDifferentials',label:'Other differentials considered',type:'multi',options:['Pericarditis/myocarditis','Pneumonia','Sepsis','Oesophageal reflux/spasm','Oesophageal rupture','Biliary/GI cause','Chest wall pain','Anxiety/panic'],note:'Other differentials considered: {{value}}.'}
+  ]},
+  {title:'Background Risk & Medication',helper:'A quick cardiovascular, VTE and medication screen.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpPastHistory',label:'Past history',type:'multi',options:['IHD/MI','PCI/CABG','Heart failure','Valve disease','Arrhythmia','Hypertension','Diabetes','Hyperlipidaemia','Stroke/TIA','CKD','COPD/asthma','Previous VTE','No relevant history'],note:'Past history included {{value}}.'},
+    {id:'cpRiskFactors',label:'Risk factors',type:'multi',options:['Smoker','Ex-smoker','Family history premature IHD','Obesity','Sedentary','Recent long travel','Recent surgery','Cancer','Recreational cocaine/stimulants','Pregnancy/postpartum'],note:'Risk factors included {{value}}.'},
+    {id:'cpMeds',label:'Medications / allergies',type:'text',note:'Medications/allergies: {{value}}.'},
+    {id:'cpBaselineFunction',label:'Baseline function / frailty',type:'short',note:'Baseline function/frailty: {{value}}.'}
+  ]},
+  {title:'Examination',helper:'Prompts for a focused A&E chest pain exam.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpGeneralExam',label:'General',type:'multi',options:['Comfortable','Distressed','Pale/clammy','Increased work of breathing','Febrile','Peripherally shut down'],note:'General examination: {{value}}.'},
+    {id:'cpCardioExam',label:'Cardiovascular',type:'multi',options:['Heart sounds normal','Murmur','Added sounds','Peripheral oedema','JVP raised','Pulses equal','Pulse deficit','BP differential'],note:'Cardiovascular examination: {{value}}.',flags:['risk']},
+    {id:'cpRespExam',label:'Respiratory',type:'multi',options:['Clear chest','Crepitations','Wheeze','Reduced air entry','Unilateral findings','Chest wall tenderness','Pleural rub'],note:'Respiratory/chest examination: {{value}}.'},
+    {id:'cpLegExam',label:'Calves / VTE signs',type:'multi',options:['No calf swelling/tenderness','Unilateral swelling','Calf tenderness','Pitting oedema','Not assessed'],note:'Calf/VTE examination: {{value}}.'},
+    {id:'cpExamNotes',label:'Other examination notes',type:'text',note:'Other examination notes: {{value}}.'}
+  ]},
+  {title:'Investigations',helper:'Document what is done, what is pending, and why.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpEcgResult',label:'ECG result',type:'multi',options:['Normal sinus rhythm','No acute ischaemic change','ST elevation','ST depression','T-wave inversion','New LBBB','Arrhythmia','Repeat ECG requested','Compared with old ECG'],note:'ECG result: {{value}}.',flags:['risk']},
+    {id:'cpTroponin',label:'Troponin pathway',type:'multi',options:['Initial troponin sent','Initial troponin negative','Initial troponin raised','Repeat troponin due','Delta troponin reassuring','Delta troponin concerning','Local rule-out pathway completed','Not indicated after assessment'],note:'Troponin pathway: {{value}}.',flags:['risk']},
+    {id:'cpBloods',label:'Bloods',type:'multi',options:['FBC','U&E/creatinine','LFT','CRP','Glucose','Coagulation','Group and save','VBG/ABG','D-dimer if indicated'],note:'Blood tests considered/performed: {{value}}.'},
+    {id:'cpImaging',label:'Imaging',type:'multi',options:['CXR requested','CXR reviewed','CT aorta considered/requested','CTPA considered/requested','Echo considered','No imaging indicated presently'],note:'Imaging: {{value}}.'},
+    {id:'cpInvestigationNotes',label:'Results / pending tests',type:'text',note:'Investigation results/pending tests: {{value}}.'}
+  ]},
+  {title:'Assessment & Plan',helper:'Turn the checklist into a coherent clinical plan.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpWorkingImpression',label:'Working impression',type:'multi',options:['Possible ACS','Likely non-cardiac chest pain','Pleuritic chest pain','Possible PE','Possible dissection','Pneumonia/respiratory cause','Musculoskeletal chest pain','GI/reflux-type pain','Unclear - needs observation/review'],note:'Working impression: {{value}}.'},
+    {id:'cpTreatment',label:'Treatment / pathway prompts',type:'multi',options:['Analgesia given/offered','Antiemetic','Aspirin/ACS pathway considered','Oxygen if clinically indicated','IV access','Serial observations','Repeat ECG/troponin','Local PE pathway','Local dissection pathway','Senior ED review'],note:'Treatment/pathway prompts: {{value}}.',flags:['risk']},
+    {id:'cpReferrals',label:'Discussion / referrals',type:'multi',options:['Senior ED discussed','Cardiology discussed','Medical team referred','Ambulatory care referred','Radiology discussed','GP follow-up advised','No referral presently'],note:'Discussion/referrals: {{value}}.'},
+    {id:'cpPlanNotes',label:'Plan details',type:'text',note:'Plan details: {{value}}.'}
+  ]},
+  {title:'Disposition & Safety Net',helper:'Make the endpoint and review triggers explicit.',summaryTemplate:'{{title}}: {{fields}}',fields:[
+    {id:'cpDisposition',label:'Disposition',type:'single',options:['Admit','ED observation','Same-day emergency care','Ambulatory clinic','Discharge','Transferred','Awaiting results/review'],note:'Disposition: {{value}}.'},
+    {id:'cpSafetyNetting',label:'Safety-netting documented',type:'multi',options:['Return if pain recurs/worsens','Return if breathlessness/syncope/sweats','Return if neurological symptoms','Return if haemoptysis/leg swelling','Medication advice given','Follow-up plan explained','Patient understands plan','Written advice provided'],note:'Safety-netting documented: {{value}}.'},
+    {id:'cpPatientUnderstanding',label:'Patient understanding / concerns',type:'text',note:'Patient understanding/concerns: {{value}}.'},
+    {id:'cpClosing',label:'Anything else important?',type:'text',note:'Additional closing information: {{value}}.'}
+  ]}
+];
+
+const clone=x=>JSON.parse(JSON.stringify(x));
+const FIELD_DEFAULT_OVERRIDES={
+  selfCare:{
+    optionNotes:{
+      Good:'Self-care appeared good.',
+      Reduced:'Self-care appeared reduced.',
+      Neglected:'Self-care appeared neglected.',
+      'Marked deterioration':'There was a marked deterioration in self-care.'
+    }
+  },
+  dress:{
+    optionNotes:{
+      Appropriate:'Dress was appropriate.',
+      Bizarre:'Dress was bizarre.',
+      Flamboyant:'Dress was flamboyant.',
+      Disinhibited:'Dress was disinhibited.',
+      Clashing:'Dress was clashing.',
+      Unkempt:'Dress was unkempt.'
+    },
+    comboNotes:{
+      'appropriate||bizarre':'Dress was appropriate although bizarre.',
+      'appropriate||bizarre||flamboyant':'Dress was appropriate, although somewhat bizarre and flamboyant.'
+    }
+  },
+  psychomotor:{
+    options:['Normal','Intellectual Disability','Agitation','Restless','Pacing','Catatonic features','Posturing','Mutism'],
+    optionNotes:{
+      Normal:'Psychomotor activity was normal.',
+      'Intellectual Disability':'The patient showed signs of intellectual disability.',
+      Agitation:'The patient was agitated.',
+      Restless:'The patient was restless.',
+      Pacing:'The patient was pacing.',
+      'Catatonic features':'The patient had catatonic features.',
+      Posturing:'The patient was posturing.',
+      Mutism:'The patient was mute.'
+    },
+    comboNotes:{
+      'agitation||catatonic features':'The patient was agitated and had catatonic features.',
+      'intellectual disability||agitation||catatonic features':'The patient showed signs of intellectual disability, was agitated, and had catatonic features.'
+    }
+  },
+  speechForm:{
+    optionNotes:{
+      Coherent:'Speech and thought form were coherent.',
+      Circumstantial:'Speech and thought form were circumstantial.',
+      Tangential:'Speech and thought form were tangential.',
+      'Flight of ideas':'Speech and thought form showed flight of ideas.',
+      'Loosening of associations':'Speech and thought form showed loosening of associations.',
+      Incoherent:'Speech and thought form was incoherent.',
+      'Thought blocking':'Speech and thought form showed thought blocking.',
+      Perseveration:'Speech and thought form showed perseveration.',
+      Echolalia:'Speech and thought form showed echolalia.',
+      Alogia:'Speech and thought form showed alogia.',
+      'Poverty of content':'Speech and thought form showed poverty of content.'
+    },
+    comboNotes:{
+      'circumstantial||tangential||flight of ideas':'Speech and thought form showed circumstantiality, tangentiality, and flight of ideas.'
+    }
+  }
+};
+const FIELD_DEFAULT_OVERRIDES_LATEST={
+  baseline:{optionNotes:{'No clear change':'No clear change to baseline.','Clear change from baseline':'There was a clear change from baseline.','Unknown baseline':"The patient's baseline is unknown."}},
+  selfCare:{optionNotes:{Good:'Self-care was good.',Reduced:'Self-care appeared reduced.',Neglected:'Self-care appeared neglected.','Marked deterioration':'There was a marked deterioration in self-care.'}},
+  dress:{comboNotes:{'appropriate||bizarre':'Dress was appropriate although bizarre.','appropriate||bizarre||flamboyant':'Dress was appropriate, although somewhat bizarre and flamboyant.','disinhibited||unkempt':'Dress was disinhibited and unkempt.'}},
+  engagement:{
+    optionNotes:{Good:'Engagement was good.',Guarded:'Engagement was guarded.',Suspicious:'Engagement was suspicious.',Hostile:'Engagement was hostile.',Intrusive:'Engagement was intrusive.',Overfamiliar:'Engagement was overfamiliar.'},
+    comboNotes:{'intrusive||overfamiliar':'Engagement was intrusive and overfamiliar.'}
+  },
+  psychomotor:{comboNotes:{'agitation||catatonic features':'The patient was agitated and had catatonic features.','intellectual disability||agitation||catatonic features':'The patient showed signs of intellectual disability, was agitated, and had catatonic features.','restless||pacing||posturing':'Psychomotor activity was characterised by restlessness, pacing, and posturing.'}},
+  riskObserved:{
+    optionNotes:{None:'No risk behaviours were observed.',Disinhibition:'Observed risk behaviours included disinhibition.',Intrusiveness:'Observed risk behaviours included intrusiveness.','Sexual behaviour':'Observed risk behaviours included sexual behaviour.',Aggression:'Observed risk behaviours included aggression.',Spending:'Observed risk behaviours included spending.','Dangerous driving':'Observed risk behaviours included dangerous driving.','Self-neglect':'Observed risk behaviours included self-neglect.'},
+    comboNotes:{'intrusiveness||sexual behaviour':'Observed risk behaviours included intrusiveness and sexual behaviour.'}
+  },
+  speechRate:{optionNotes:{Normal:'Speech rate was normal.',Slow:'Speech rate was slow.',Rapid:'Speech rate was rapid.',Pressured:'Speech rate was pressured.','Pressured but interruptible':'Speech rate was pressured but interruptible.','Pressured and difficult to interrupt':'Speech rate was pressured and difficult to interrupt.'}},
+  speechQuantity:{optionNotes:{Normal:'Speech quantity was normal.',Poverty:'Speech quantity showed poverty.',Increased:'Speech quantity was increased.',Excessive:'Speech quantity was excessive.','Minimal elaboration':'Speech quantity had minimal elaboration.'}},
+  speechForm:{comboNotes:{'circumstantial||tangential||flight of ideas':'Speech and thought form showed circumstantiality, tangentiality, and flight of ideas.','coherent||tangential':'Speech and thought form showed coherence and tangentiality.'}},
+  verbatimSpeech:{note:'Verbatim speech examples: "{{value}}".'},
+  mood:{
+    optionNotes:{Low:'Subjectively, mood was low.',Euthymic:'Subjectively, mood was euthymic.',Elevated:'Subjectively, mood was elevated.',Expansive:'Subjectively, mood was expansive.',Irritable:'Subjectively, mood was irritable.',Anxious:'Subjectively, mood was anxious.',Labile:'Subjectively, mood was labile.',Hopeless:'Subjectively, mood was hopeless.'},
+    comboNotes:{'irritable||anxious||labile':'Subjectively, mood was irritable, anxious, and labile.'}
+  },
+  biological:{
+    optionNotes:{None:'The patient did not report any biological symptoms or medication side effects.','Reduced sleep':'Biological symptoms and medication side effects included reduced sleep.','Increased sleep':'Biological symptoms and medication side effects included increased sleep.','Reduced need for sleep':'Biological symptoms and medication side effects included reduced need for sleep.','Early morning waking':'Biological symptoms and medication side effects included early morning waking.',Hypersomnia:'Biological symptoms and medication side effects included hypersomnia.','Reduced appetite':'Biological symptoms and medication side effects included reduced appetite.','Increased appetite':'Biological symptoms and medication side effects included increased appetite.','Weight loss':'Biological symptoms and medication side effects included weight loss.','Weight gain':'Biological symptoms and medication side effects included weight gain.','Reduced energy':'Biological symptoms and medication side effects included reduced energy.',Anhedonia:'Biological symptoms and medication side effects included anhedonia.','Reduced libido':'Biological symptoms and medication side effects included reduced libido.','Reduced concentration':'Biological symptoms and medication side effects included reduced concentration.','Diurnal mood variation':'Biological symptoms and medication side effects included diurnal mood variation.','Leaden paralysis':'Biological symptoms and medication side effects included leaden paralysis.',Hypersalivation:'Biological symptoms and medication side effects included hypersalivation.',Tachycardia:'Biological symptoms and medication side effects included tachycardia.',Palpitations:'Biological symptoms and medication side effects included palpitations.',Dizziness:'Biological symptoms and medication side effects included dizziness.',Constipation:'Biological symptoms and medication side effects included constipation.','Akathisia/restlessness':'Biological symptoms and medication side effects included akathisia/restlessness.'},
+    comboNotes:{'reduced sleep||weight gain||reduced concentration||diurnal mood variation':'Biological symptoms and medication side effects included reduced sleep, weight gain, reduced concentration, and diurnal mood variation.'}
+  },
+  bipolarFlags:{
+    optionNotes:{None:'No obvious bipolar-spectrum features were elicited.',Hypersomnia:'Bipolar-spectrum features included hypersomnia.',Hyperphagia:'Bipolar-spectrum features included hyperphagia.','Mood reactivity':'Bipolar-spectrum features included mood reactivity.','Leaden paralysis':'Bipolar-spectrum features included leaden paralysis.','Reduced need for sleep':'Bipolar-spectrum features included reduced need for sleep.','Increased activity':'Bipolar-spectrum features included increased activity.','Impulsive spending':'Bipolar-spectrum features included impulsive spending.','Risky sexual behaviour':'Bipolar-spectrum features included risky sexual behaviour.','Family history of bipolar':'Bipolar-spectrum features included family history of bipolar.','Antidepressant activation':'Bipolar-spectrum features included antidepressant activation.'},
+    comboNotes:{'hyperphagia||mood reactivity':'Bipolar-spectrum features included hyperphagia and mood reactivity.'}
+  },
+  thoughtForm:{
+    optionNotes:{Linear:'Thought form was linear.',Circumstantial:'Thought form was circumstantial.',Tangential:'Thought form was tangential.','Flight of ideas':'Thought form showed flight of ideas.','Loosening of associations':'Thought form showed loosening of associations.','Word salad':'Thought form showed word salad.',Neologisms:'Thought form showed neologisms.','Clang associations':'Thought form showed clang associations.',Blocking:'Thought form showed blocking.',Perseveration:'Thought form showed perseveration.',Echolalia:'Thought form showed echolalia.',Alogia:'Thought form showed alogia.','Poverty of content':'Thought form showed poverty of content.'},
+    comboNotes:{'circumstantial||tangential||flight of ideas':'Thought form was notable for circumstantiality, tangentiality, and flight of ideas.'}
+  },
+  delusions:{
+    optionNotes:{None:'There was no evidence of delusions or abnormal beliefs.',Persecutory:'Thought content included persecutory delusions.',Referential:'Thought content included referential delusions.',Grandiose:'Thought content included grandiose delusions.','Nihilistic/Cotard':'Thought content included nihilistic/Cotard delusions.',Erotomanic:'Thought content included erotomanic delusions.','Jealous/Othello':'Thought content included jealous/Othello delusions.',Somatic:'Thought content included somatic delusions.','Guilt-laden':'Thought content included guilt-laden delusions.',Capgras:'Thought content included Capgras delusions.',Fregoli:'Thought content included Fregoli delusions.','Passivity-related':'Thought content included passivity-related delusions.','Folie a deux':'Thought content included folie a deux delusions.'},
+    comboNotes:{'referential||grandiose||nihilistic/cotard':'Thought content included referential, grandiose, and nihilistic/Cotard delusions.','grandiose||jealous/othello||somatic':'Thought content included grandiose, jealous/Othello, and somatic delusions.'}
+  },
+  intensity:{optionNotes:{Fixed:'Conviction was fixed.','High conviction':'Conviction was high.','Partial doubt':'Conviction was associated with partial doubt.','Can consider alternative explanations':'The patient could consider alternative explanations.','Overvalued idea':'Conviction was consistent with an overvalued idea.'}},
+  negativeTriad:{optionNotes:{Worthlessness:'Depressive thought content included worthlessness.',Hopelessness:'Depressive thought content included hopelessness.',Guilt:'Depressive thought content included guilt.','Self-blame':'Depressive thought content included self-blame.',Nihilism:'Depressive thought content included nihilism.',Rumination:'Depressive thought content included rumination.','No future':'Depressive thought content included a sense of having no future.'},comboNotes:{'worthlessness||hopelessness':'Depressive thought content included worthlessness and hopelessness.'}},
+  frs:{optionNotes:{None:'No passivity or first-rank symptoms were elicited.','Thought insertion':'Passivity/first-rank symptoms included thought insertion.','Thought withdrawal':'Passivity/first-rank symptoms included thought withdrawal.','Thought broadcasting':'Passivity/first-rank symptoms included thought broadcasting.','Made actions':'Passivity/first-rank symptoms included made actions.','Made feelings':'Passivity/first-rank symptoms included made feelings.','Made impulses':'Passivity/first-rank symptoms included made impulses.','Thought echo':'Passivity/first-rank symptoms included thought echo.','Running commentary':'Passivity/first-rank symptoms included running commentary.','Voices arguing':'Passivity/first-rank symptoms included voices arguing.'},comboNotes:{'thought insertion||thought withdrawal||thought broadcasting':'Passivity and first-rank symptoms included thought insertion, thought withdrawal, and thought broadcasting.'}},
+  frsNotes:{label:'Verbatim example',note:'Passivity phenomena verbatim example: {{value}}.'},
+  auditory:{optionNotes:{None:'No auditory phenomena were reported.','Second-person voices':'Auditory phenomena included second-person voices.','Third-person voices':'Auditory phenomena included third-person voices.','Running commentary':'Auditory phenomena included running commentary.','Thought echo':'Auditory phenomena included thought echo.','Voices arguing':'Auditory phenomena included voices arguing.','Command hallucinations':'Auditory phenomena included command hallucinations.','Mood-congruent accusatory voices':'Auditory phenomena included mood-congruent accusatory voices.','Mood-congruent grandiose voices':'Auditory phenomena included mood-congruent grandiose voices.'},comboNotes:{'third-person voices||running commentary':'Auditory phenomena included third-person voices and running commentary.'}},
+  voiceFeatures:{optionNotes:{Distressing:'Voice-related features included distress.',Frequent:'Voice-related features included frequent occurrence.','Recognised voice':'Voice-related features included a recognised voice.','Internal subjective space':'Voice-related features included internal subjective space.','External space':'Voice-related features included external space.','Retained insight':'Voice-related features included retained insight.','Poor insight':'Voice-related features included poor insight.'},comboNotes:{'distressing||recognised voice||internal subjective space':'Voice-related features included distress, a recognised voice, and internal subjective space.'}},
+  commandHallucinations:{optionNotes:{None:'No command hallucinations were identified.','Content elicited':'Command hallucination content was elicited.','Compulsion to obey':'Command hallucination assessment identified compulsion to obey.','Past compliance':'Command hallucination assessment identified past compliance.','Specific target':'Command hallucination assessment identified a specific target.','Access to means':'Command hallucination assessment identified access to means.','Can resist commands':'The patient reported being able to resist commands.','Cannot resist commands':'The patient reported being unable to resist commands.'}},
+  otherModalities:{optionNotes:{Visual:'Other perceptual modalities included visual phenomena.',Olfactory:'Other perceptual modalities included olfactory phenomena.',Gustatory:'Other perceptual modalities included gustatory phenomena.',Somatic:'Other perceptual modalities included somatic phenomena.',Lilliputian:'Other perceptual modalities included lilliputian visual phenomena.','Unpleasant burning smell':'Other perceptual modalities included an unpleasant burning smell.','Rotting smell':'Other perceptual modalities included a rotting smell.'},comboNotes:{'visual||gustatory||unpleasant burning smell':'Other perceptual modalities included visual and gustatory phenomena, and an unpleasant burning smell.'}},
+  orientation:{optionNotes:{'Time intact':'Orientation to time was intact.','Place intact':'Orientation to place was intact.','Person intact':'Orientation to person was intact.','Disoriented to time':'The patient was disoriented to time.','Disoriented to place':'The patient was disoriented to place.','Disoriented to person':'The patient was disoriented to person.'},comboNotes:{'time intact||place intact||person intact':'The patient was oriented to time, place, and person.'}},
+  memory:{optionNotes:{'Not assessed':'Memory was not assessed.','Immediate intact':'Immediate memory appeared intact.','Short-term intact':'Short-term memory appeared intact.','Long-term intact':'Long-term memory appeared intact.','Immediate impaired':'Immediate memory appeared impaired.','Short-term impaired':'Short-term memory appeared impaired.',Amnesia:'Memory findings included amnesia.'}},
+  executive:{optionNotes:{'Abstract thinking intact':'Abstract thinking was intact.','Concrete proverb interpretation':'Executive function findings included concrete proverb interpretation.','Similarities impaired':'Executive function findings included impaired similarities.','Planning impaired':'Executive function findings included impaired planning.','Cognitive flexibility impaired':'Executive function findings included impaired cognitive flexibility.','Reduced function':'Executive function appeared reduced.'},comboNotes:{'abstract thinking intact||concrete proverb interpretation':'Executive function findings showed intact abstract thinking with concrete proverb interpretation.'}},
+  cognitiveRedFlags:{optionNotes:{'No red flags':'There were no organic cognitive red flags.','Fluctuating consciousness':'Organic cognitive red flags included fluctuating consciousness.','Rapid decline':'Organic cognitive red flags included rapid decline.',Disorientation:'Organic cognitive red flags included disorientation.','Prominent visual hallucinations':'Organic cognitive red flags included prominent visual hallucinations.',Seizures:'Organic cognitive red flags included seizures.','Headache/meningism':'Organic cognitive red flags included headache/meningism.','Focal neurology':'Organic cognitive red flags included focal neurology.','Autonomic instability':'Organic cognitive red flags included autonomic instability.','Movement disorder':'Organic cognitive red flags included movement disorder.'}},
+  awareness:{optionNotes:{Aware:'The patient had awareness of their illness.',Partial:'Awareness of illness was partial.',None:'The patient did not have awareness of their illness.','Aware of decline only':'The patient had awareness of decline only.'}},
+  relabelling:{optionNotes:{'Attributes to illness':'The patient attributed their experiences to illness.','Partial relabelling':'Relabelling of experiences was partial.',Externalises:'The patient externalised their experiences.','Cannot relabel':'The patient was unable to relabel their experiences.'}},
+  treatment:{optionNotes:{Accepts:'The patient accepts treatment.',Ambivalent:'The patient was ambivalent about treatment.',Refuses:'The patient refuses treatment.','Accepts support but not medication':'The patient accepts support but not medication.',Disengaged:'The patient was disengaged from treatment.'}},
+  suicide:{options:['No current ideation','Passive thoughts','Active ideation','Planning','Intent','Preparation','Rehearsal','Access to means','Previous attempt','Post-psychotic depression','Mixed state concern'],optionNotes:{'No current ideation':'No current suicidal ideation was reported.','Passive thoughts':'Suicide risk features included passive thoughts.','Active ideation':'Suicide risk features included active ideation.',Planning:'Suicide risk features included planning.',Intent:'Suicide risk features included intent.',Preparation:'Suicide risk features included preparation.',Rehearsal:'Suicide risk features included rehearsal.','Access to means':'Suicide risk features included access to means.','Previous attempt':'Suicide risk features included previous attempt.','Post-psychotic depression':'Suicide risk features included post-psychotic depression.','Mixed state concern':'Suicide risk features included mixed state concern.'},comboNotes:{'passive thoughts||planning':'Suicide and self-harm risk features included passive thoughts and planning.','planning||intent||preparation||rehearsal||access to means||previous attempt||post-psychotic depression':'Suicide and self-harm risk features included planning, intent, preparation, rehearsal, access to means, previous attempt, and post-psychotic depression.'}},
+  violence:{optionNotes:{'No obvious risk of violence':'No obvious risk of violence was identified.','Thoughts to harm others':'Violence risk features included thoughts to harm others.','Command hallucinations':'Violence risk features included command hallucinations.','Delusional target':'Violence risk features included a delusional target.','Threat-control override':'Violence risk features included threat-control override.','History of violence':'Violence risk features included a history of violence.','Access to weapons':'Violence risk features included access to weapons.','Substance misuse':'Violence risk features included substance misuse.','Irritable mania':'Violence risk features included irritable mania.'},comboNotes:{'command hallucinations||delusional target':'Violence risk features included command hallucinations and a delusional target.'}},
+  vulnerability:{optionNotes:{'No safeguarding concerns presently':'No safeguarding concerns were identified at present.','Self-neglect':'Vulnerability and safeguarding concerns included self-neglect.',Exploitation:'Vulnerability and safeguarding concerns included exploitation.','Children at home':'Vulnerability and safeguarding concerns included children at home.','Domestic abuse concern':'Vulnerability and safeguarding concerns included domestic abuse concern.','Financial exploitation':'Vulnerability and safeguarding concerns included financial exploitation.','County lines/coercion':'Vulnerability and safeguarding concerns included county lines/coercion.','Unable to maintain nutrition/hydration':'Vulnerability and safeguarding concerns included inability to maintain nutrition/hydration.'}},
+  capacity:{options:['Understands','Retains','Uses/weighs','Communicates','Unable to understand','Unable to retain','Unable to use/weigh','Unable to communicate','Not assessed'],note:'During the capacity assessment the patient was able to {{value}}.',optionNotes:{Understands:'During the capacity assessment the patient was able to understand information about their care.',Retains:'During the capacity assessment the patient was able to retain information about their care.','Uses/weighs':'During the capacity assessment the patient was able to use and weigh information about their care.',Communicates:'During the capacity assessment the patient was able to communicate their decision.','Unable to understand':'During the capacity assessment the patient was unable to understand information about their care.','Unable to retain':'During the capacity assessment the patient was unable to retain information about their care.','Unable to use/weigh':'During the capacity assessment the patient was unable to use or weigh information about their care.','Unable to communicate':'During the capacity assessment the patient was unable to communicate their decision.','Not assessed':'Capacity was not assessed.'},comboNotes:{'understands||retains||uses/weighs||communicates':'During the capacity assessment the patient was able to understand, retain, use and weigh, and communicate information about their care.','understands||retains||uses/weighs':'During the capacity assessment the patient was able to understand, retain, and use and weigh information about their care.','unable to understand||unable to retain||unable to use/weigh||unable to communicate':'During the capacity assessment the patient was unable to understand, retain, use or weigh, or communicate information about their care.','unable to retain||unable to use/weigh||unable to communicate':'During the capacity assessment the patient was unable to retain, use or weigh, or communicate information about their care.','unable to use/weigh||unable to communicate':'During the capacity assessment the patient was unable to use or weigh information or communicate their decision.','unable to understand||unable to communicate':'During the capacity assessment the patient was unable to understand information about their care or communicate their decision.','unable to understand||unable to retain||unable to communicate':'During the capacity assessment the patient was unable to understand, retain, or communicate information about their care.','unable to retain||unable to communicate':'During the capacity assessment the patient was unable to retain information about their care or communicate their decision.','unable to understand||unable to retain':'During the capacity assessment the patient was unable to understand and retain information about their care.'}},
+  differentialPattern:{optionNotes:{'Schizophrenia-spectrum':'Differential patterns considered included schizophrenia-spectrum illness.','Bipolar mania':'Differential patterns considered included bipolar mania.','Bipolar depression':'Differential patterns considered included bipolar depression.','Mixed affective state':'Differential patterns considered included a mixed affective state.','Delirium/organic':'Differential patterns considered included delirium/organic causes.','Psychotic depression':'Differential patterns considered included psychotic depression.','Substance-induced':'Differential patterns considered included substance-induced symptoms.','Trauma/personality-related voices':'Differential patterns considered included trauma/personality-related voices.'},comboNotes:{'schizophrenia-spectrum||bipolar mania||bipolar depression':'Differential patterns considered included schizophrenia-spectrum illness, bipolar mania, and bipolar depression.'}},
+  organicRedFlags:{optionNotes:{'None identified':'No organic red flags were identified.','Age <14 or >45 at onset':'Organic red flags included age <14 or >45 at onset.','Rapid onset hours-days':'Organic red flags included rapid onset over hours to days.','Fluctuating consciousness':'Organic red flags included fluctuating consciousness.','Acute confusion':'Organic red flags included acute confusion.','Prominent visual hallucinations':'Organic red flags included prominent visual hallucinations.','Focal neurology':'Organic red flags included focal neurology.','Headache/meningism':'Organic red flags included headache/meningism.',Seizures:'Organic red flags included seizures.','Autonomic instability':'Organic red flags included autonomic instability.','Movement disorder':'Organic red flags included movement disorder.','Rapid cognitive decline':'Organic red flags included rapid cognitive decline.','Immunocompromised/postoperative':'Organic red flags included immunocompromised/postoperative status.','New medication/substance':'Organic red flags included new medication/substance exposure.'},comboNotes:{'age <14 or >45 at onset||rapid onset hours-days':'Organic red flags included age <14 or >45 at onset and rapid onset over hours to days.'}},
+  workupPrompts:{optionNotes:{'Baseline bloods considered':'Workup prompts documented: baseline bloods considered.','ECG/QTc considered':'Workup prompts documented: ECG/QTc considered.','Urine drug screen considered':'Workup prompts documented: urine drug screen considered.','MRI/EEG/LP if indicated':'Workup prompts documented: MRI/EEG/LP if indicated.','Autoimmune encephalitis screen if indicated':'Workup prompts documented: autoimmune encephalitis screen if indicated.','HIV/syphilis if indicated':'Workup prompts documented: HIV/syphilis if indicated.','Wilson screen if young FEP':'Workup prompts documented: Wilson screen if young FEP.'}},
+  referenceReminders:{note:'Guideline reminders considered: {{value}}.',optionNotes:{'NICE CG178 psychosis monitoring':'Guideline reminders considered: NICE CG178 psychosis monitoring.','NICE NG225 self-harm/risk judgement':'Guideline reminders considered: NICE NG225 self-harm/risk judgement.','MCA understand-retain-use/weigh-communicate':'Guideline reminders considered: MCA understand-retain-use/weigh-communicate.','Organic red flags screen':'Guideline reminders considered: organic red flags screen.','EIP referral standard':'Guideline reminders considered: EIP referral standard.','CBTp/family intervention reminder':'Guideline reminders considered: CBTp/family intervention reminder.','Antipsychotic side-effect discussion':'Guideline reminders considered: antipsychotic side-effect discussion.','Physical health monitoring':'Guideline reminders considered: physical health monitoring.','EPS screen':'Guideline reminders considered: EPS screen.','Lithium monitoring reminder':'Guideline reminders considered: lithium monitoring reminder.','MHRA valproate under-55 restriction':'Guideline reminders considered: MHRA valproate under-55 restriction.','Valproate PPP reminder':'Guideline reminders considered: valproate PPP reminder.','Clozapine pathway reminder':'Guideline reminders considered: clozapine pathway reminder.','MHA/MCA interface reminder':'Guideline reminders considered: MHA/MCA interface reminder.'},comboNotes:{'physical health monitoring||eps screen||lithium monitoring reminder||mhra valproate under-55 restriction||valproate ppp reminder':'Guideline reminders considered included physical health monitoring, EPS screen, lithium monitoring reminder, MHRA valproate under-55 restriction, and valproate PPP reminder.'}},
+  primarySyndrome:{optionNotes:{Psychotic:'A primary psychotic syndrome was considered.',Affective:'A primary affective syndrome was considered.',Organic:'A primary organic syndrome was considered.',Mixed:'A primary mixed syndrome was considered.','Substance-related':'A primary substance-related syndrome was considered.','Trauma-related':'A primary trauma-related syndrome was considered.',Unclear:'The primary syndrome was unclear.'}}
+};
+Object.keys(FIELD_DEFAULT_OVERRIDES_LATEST).forEach(k=>{
+  FIELD_DEFAULT_OVERRIDES[k]={...(FIELD_DEFAULT_OVERRIDES[k]||{}),...FIELD_DEFAULT_OVERRIDES_LATEST[k]};
+  if(FIELD_DEFAULT_OVERRIDES[k].optionNotes||FIELD_DEFAULT_OVERRIDES_LATEST[k].optionNotes){
+    FIELD_DEFAULT_OVERRIDES[k].optionNotes={...((FIELD_DEFAULT_OVERRIDES[k]||{}).optionNotes||{}),...(FIELD_DEFAULT_OVERRIDES_LATEST[k].optionNotes||{})};
+  }
+  if(FIELD_DEFAULT_OVERRIDES[k].comboNotes||FIELD_DEFAULT_OVERRIDES_LATEST[k].comboNotes){
+    FIELD_DEFAULT_OVERRIDES[k].comboNotes={...((FIELD_DEFAULT_OVERRIDES[k]||{}).comboNotes||{}),...(FIELD_DEFAULT_OVERRIDES_LATEST[k].comboNotes||{})};
+  }
+});
+function applyDefaultOverrides(){
+  DEFAULT_SECTIONS.forEach(sec=>sec.fields.forEach(f=>{
+    const o=FIELD_DEFAULT_OVERRIDES[f.id];
+    if(o)Object.assign(f,o);
+  }));
+}
+applyDefaultOverrides();
+const TEMPLATES={
+  mse:{
+    id:'mse',
+    title:'MSE Plus Note Generator',
+    shortTitle:'Mental State Examination',
+    subtitle:'Structured MSE documentation with phenomenology prompts, risk formulation cues, and reference-only clinical reminders.',
+    description:'A psychiatry template for mental state examination, risk, capacity, organic screen and synthesis.',
+    tags:['Psychiatry','MSE','Risk'],
+    sections:DEFAULT_SECTIONS,
+    guides:QUICK_GUIDES,
+    defaultNoteTemplate:DEFAULT_NOTE_TEMPLATE
+  },
+  chestPain:{
+    id:'chestPain',
+    title:'A&E Chest Pain Consultation',
+    shortTitle:'A&E Chest Pain',
+    subtitle:'Clickable A&E chest pain prompts for history, red flags, examination, investigations, assessment, disposition and safety-netting.',
+    description:'An emergency medicine template for chest pain clerking, dangerous differentials and concise documentation.',
+    tags:['A&E','Chest pain','ACS'],
+    sections:CHEST_PAIN_SECTIONS,
+    guides:CHEST_PAIN_GUIDES,
+    defaultNoteTemplate:CHEST_PAIN_NOTE_TEMPLATE
+  }
+};
+if(!TEMPLATES[activeTemplateId])activeTemplateId='mse';
+let sections=loadSections(),state={},edit=false,studyMode=false,noteTemplate=loadTemplate(),guideReminders=[];
+const fieldIndex=()=>sections.flatMap((s,si)=>s.fields.map((f,fi)=>({section:s,field:f,si,fi})));
+function activeTemplate(){return TEMPLATES[activeTemplateId]||TEMPLATES.mse}
+function templateDefaults(){return activeTemplate().sections}
+function templateGuides(){return activeTemplate().guides||[]}
+function storageKey(kind){return `note_generator_${activeTemplateId}_${kind}_v1`}
+function legacyStorageKey(kind){
+  if(activeTemplateId!=='mse')return null;
+  return kind==='sections'?LEGACY_KEY:kind==='suggestions'?LEGACY_SKEY:kind==='note_template'?LEGACY_TKEY:null;
+}
+function readTemplateStorage(kind){
+  const key=storageKey(kind),legacy=legacyStorageKey(kind);
+  return localStorage.getItem(key)||(legacy?localStorage.getItem(legacy):null);
+}
+function byId(items){return Object.fromEntries((items||[]).filter(x=>x&&x.id).map(x=>[x.id,x]))}
+function mergeOptions(def,saved){
+  const out=[];
+  [...(def.options||[]),...(saved.options||[])].forEach(x=>{if(x&&!out.includes(x))out.push(x)});
+  return out;
+}
+function normalizeSections(raw){
+  const defaults=templateDefaults();
+  if(!Array.isArray(raw))return clone(defaults);
+  const byTitle=Object.fromEntries(raw.map(s=>[s.title,s]));
+  return defaults.map(def=>{
+    const saved=byTitle[def.title]||{};
+    const savedFields=byId(saved.fields);
+    const fields=def.fields.map(f=>{
+      const savedField=savedFields[f.id]||{};
+      const options=mergeOptions(f,savedField).filter(o=>!(f.id==='psychomotor'&&o==='Retardation'));
+      return {
+        ...f,
+        ...savedField,
+        options,
+        optionNotes:{...(f.optionNotes||{}),...(savedField.optionNotes||{})},
+        comboNotes:{...(f.comboNotes||{}),...(savedField.comboNotes||{})}
+      };
+    });
+    const extras=(saved.fields||[]).filter(f=>f&&f.id&&!fields.some(x=>x.id===f.id));
+    return {...def,...saved,fields:[...fields,...extras]};
+  }).concat(raw.filter(s=>s&&s.title&&!defaults.some(d=>d.title===s.title)));
+}
+function loadSections(){try{return normalizeSections(JSON.parse(readTemplateStorage('sections')||'null'))}catch{return clone(templateDefaults())}}
+function normalizeTemplate(t){return String(t||activeTemplate().defaultNoteTemplate).replace(/\\n/g,'\n')}
+function loadTemplate(){try{return normalizeTemplate(readTemplateStorage('note_template')||activeTemplate().defaultNoteTemplate)}catch{return activeTemplate().defaultNoteTemplate}}
+function saveSections(){localStorage.setItem(storageKey('sections'),JSON.stringify(sections))}
+function saveTemplate(){localStorage.setItem(storageKey('note_template'),noteTemplate)}
+function resetState(){state={};fieldIndex().forEach(({field:f})=>state[f.id]=f.type==='multi'?[]:'')}
+function h(v){return Array.isArray(v)?v.join(', ').toLowerCase():(v||'').trim()}
+function displayValue(v){return Array.isArray(v)?v.join(', '):(v||'').trim()}
+function nv(v){return h(v)||'not recorded'}
+function cleanText(x){return String(x||'').replace(/\s+/g,' ').trim()}
+function esc(x){return String(x||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function id(x){return x.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,28)+'_'+Math.random().toString(36).slice(2,6)}
+function defaultFieldNote(f){return f.type==='text'||f.type==='short'?`${f.label}: {{value}}.`:`${f.label} included {{value}}.`}
+const BLOCK_LABELS={clinical:'Clinical note',interview:'Interview prompts',reference:'Reference-only guidance'};
+function lines(x){return String(x||'').split('\n').map(cleanText).filter(Boolean)}
+function blockLabel(type){return BLOCK_LABELS[type]||'Guidance'}
+function blockTitle(type){return blockLabel(type)}
+function makeBlock(type,position){return{id:id(type),type,position:position||'after',title:blockTitle(type),body:''}}
+function legacyBlocks(f){
+  const out=[];
+  if(f.help||f.info)out.push({id:id('clinical'),type:'clinical',position:'after',title:'Clinical note',body:f.help||f.info});
+  if(f.prompts&&f.prompts.length)out.push({id:id('interview'),type:'interview',position:'after',title:'Interview prompts',body:f.prompts.join('\n')});
+  if(f.reference)out.push({id:id('reference'),type:'reference',position:'after',title:'Reference-only guidance',body:f.reference});
+  return out;
+}
+function legacySectionBlocks(sec){
+  return sec.reference?[{id:id('reference'),type:'reference',position:'after',title:'Reference-only guidance',body:sec.reference}]:[];
+}
+function fieldBlocks(f,position){
+  const blocks=Array.isArray(f.contentBlocks)?f.contentBlocks:legacyBlocks(f);
+  return blocks.filter(b=>(b.position||'after')===position);
+}
+function sectionBlocks(sec){
+  return Array.isArray(sec.referenceBlocks)?sec.referenceBlocks:legacySectionBlocks(sec);
+}
+function renderContentBlock(b){
+  const type=b.type||'clinical';
+  const title=cleanText(b.title)||blockTitle(type);
+  const body=String(b.body||'');
+  const bodyHtml=type==='interview'
+    ? `<ul>${lines(body).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`
+    : `<p>${esc(body)}</p>`;
+  return `<details class="contentBlock ${type==='reference'?'referenceBlock':esc(type)}">
+    <summary>${esc(title)}</summary>${bodyHtml}
+  </details>`;
+}
+const NEGATIVE_VALUES=new Set(['none','none identified','no red flags','no current ideation','no obvious risk of violence','no safeguarding concerns presently','no clear change']);
+const FIELD_COMBO_COPY={
+  dress:{template:'Dress was {{value}}.'},
+  engagement:{template:'Engagement was {{value}}.'},
+  psychomotor:{
+    template:'Psychomotor activity was characterised by {{value}}.',
+    phrases:{Normal:'normal activity','Intellectual Disability':'signs of intellectual disability',Agitation:'agitation',Restless:'restlessness',Pacing:'pacing','Catatonic features':'catatonic features',Posturing:'posturing',Mutism:'mutism'}
+  },
+  riskObserved:{template:'Observed risk behaviours included {{value}}.'},
+  speechForm:{
+    template:'Speech and thought form showed {{value}}.',
+    phrases:{Coherent:'coherence',Circumstantial:'circumstantiality',Tangential:'tangentiality','Flight of ideas':'flight of ideas','Loosening of associations':'loosening of associations',Incoherent:'incoherence','Thought blocking':'thought blocking',Perseveration:'perseveration',Echolalia:'echolalia',Alogia:'alogia','Poverty of content':'poverty of content'}
+  },
+  mood:{template:'Subjectively, mood was {{value}}.'},
+  affect:{template:'Objectively, affect was {{value}}.'},
+  biological:{template:'Biological symptoms and medication side effects included {{value}}.'},
+  bipolarFlags:{template:'Bipolar-spectrum features included {{value}}.'},
+  thoughtForm:{
+    template:'Thought form was notable for {{value}}.',
+    phrases:{Linear:'linear form',Circumstantial:'circumstantiality',Tangential:'tangentiality','Flight of ideas':'flight of ideas','Loosening of associations':'loosening of associations','Word salad':'word salad',Neologisms:'neologisms','Clang associations':'clang associations',Blocking:'blocking',Perseveration:'perseveration',Echolalia:'echolalia',Alogia:'alogia','Poverty of content':'poverty of content'}
+  },
+  delusions:{template:'Thought content included {{value}}.'},
+  phenomenology:{template:'Belief phenomenology included {{value}}.'},
+  negativeTriad:{template:'Depressive thought content included {{value}}.'},
+  frs:{template:'Passivity and first-rank symptoms included {{value}}.'},
+  auditory:{template:'Auditory phenomena included {{value}}.'},
+  voiceFeatures:{template:'Voice-related features included {{value}}.'},
+  commandHallucinations:{template:'Command hallucination assessment identified {{value}}.'},
+  otherModalities:{template:'Other perceptual modalities included {{value}}.'},
+  perceptionDifferentiation:{template:'Perceptual experiences were considered in relation to {{value}}.'},
+  orientation:{template:'Orientation findings included {{value}}.'},
+  attention:{template:'Attention was assessed using {{value}}.'},
+  memory:{template:'Memory findings included {{value}}.'},
+  executive:{template:'Executive function findings included {{value}}.'},
+  cognitiveRedFlags:{template:'Organic cognitive red flags included {{value}}.'},
+  suicide:{template:'Suicide and self-harm risk features included {{value}}.'},
+  violence:{template:'Violence risk features included {{value}}.'},
+  vulnerability:{template:'Vulnerability and safeguarding concerns included {{value}}.'},
+  capacity:{template:'Capacity elements assessed included {{value}}.'},
+  differentialPattern:{template:'Differential patterns considered included {{value}}.'},
+  organicRedFlags:{template:'Organic red flags included {{value}}.'},
+  workupPrompts:{template:'Workup prompts documented included {{value}}.'},
+  referenceReminders:{template:'Reference-only reminders considered included {{value}}.'},
+  primarySyndrome:{template:'The primary syndrome considered was {{value}}.'}
+};
+const NEGATIVE_NOTES={
+  riskObserved:'No observed risk behaviours.',
+  biological:'No biological symptoms or medication side effects were reported.',
+  bipolarFlags:'No bipolar-spectrum flags were elicited.',
+  delusions:'No delusional beliefs or abnormal thought content were elicited.',
+  frs:'No passivity phenomena or Schneiderian first-rank symptoms were elicited.',
+  auditory:'No auditory hallucinations or related auditory phenomena were reported.',
+  commandHallucinations:'No command hallucinations were reported.',
+  cognitiveRedFlags:'No organic cognitive red flags were identified.',
+  awareness:'No awareness of illness was evident.',
+  suicide:'No current suicidal ideation was reported.',
+  violence:'No obvious current risk of violence was identified.',
+  vulnerability:'No current safeguarding concerns were identified.',
+  organicRedFlags:'No organic red flags were identified.',
+  baseline:'No clear change from baseline was identified.'
+};
+function selectedValues(f){
+  const v=state[f.id];
+  return (Array.isArray(v)?v:[v]).map(cleanText).filter(Boolean);
+}
+function isNegativeValue(v){return NEGATIVE_VALUES.has(cleanText(v).toLowerCase())}
+function noteValues(f){
+  const values=selectedValues(f);
+  return values.length>1?values.filter(v=>!isNegativeValue(v)):values;
+}
+function negativeNoteFor(f,values){
+  if(values.length!==1||!isNegativeValue(values[0]))return'';
+  return NEGATIVE_NOTES[f.id]||`No ${f.label.toLowerCase()} were identified.`;
+}
+function tidyNote(x){return String(x||'').split('\n').map(r=>r.trimEnd()).join('\n').replace(/\n{4,}/g,'\n\n\n').trim()}
+function templateValue(v,fb){
+  const raw=String(v??'');
+  return cleanText(raw)?raw.trim():cleanText(fb);
+}
+function applyTemplate(t,m){return tidyNote(String(t||'').replace(/\{\{\s*([a-zA-Z0-9_]+)(?:\|([^}]*))?\s*\}\}/g,(a,k,fb)=>templateValue(m[k],fb)))}
+function optionOrder(f,v){return (f.options||[]).indexOf(v)}
+function orderedValues(f,values){
+  return [...values].sort((a,b)=>{
+    const ai=optionOrder(f,a),bi=optionOrder(f,b);
+    if(ai<0&&bi<0)return a.localeCompare(b);
+    if(ai<0)return 1;
+    if(bi<0)return -1;
+    return ai-bi;
+  });
+}
+function phraseFor(f,v){
+  return FIELD_COMBO_COPY[f.id]?.phrases?.[v]||cleanText(v).toLowerCase();
+}
+function phraseList(f,values){
+  const list=values.map(v=>phraseFor(f,v)).filter(Boolean);
+  if(list.length<3)return list.join(' and ');
+  return `${list.slice(0,-1).join(', ')}, and ${list.at(-1)}`;
+}
+function rawPhraseList(values){
+  if(values.length<3)return values.join(' and ');
+  return `${values.slice(0,-1).join(', ')}, and ${values.at(-1)}`;
+}
+function comboKeyFor(f,values){return orderedValues(f,values).map(v=>cleanText(v).toLowerCase()).join('||')}
+function comboNoteText(f,values){
+  const ordered=orderedValues(f,values);
+  const key=comboKeyFor(f,ordered);
+  const saved=f.comboNotes?.[key];
+  if(cleanText(saved))return saved;
+  return applyTemplate(FIELD_COMBO_COPY[f.id]?.template||f.note||defaultFieldNote(f),{
+    id:f.id,
+    label:f.label,
+    value:phraseList(f,ordered),
+    rawValue:rawPhraseList(ordered)
+  });
+}
+function fieldNote(f){
+  const rawValues=selectedValues(f);
+  if(!rawValues.length)return'';
+  const negative=negativeNoteFor(f,rawValues);
+  if(negative)return negative;
+  const values=noteValues(f);
+  if(!values.length)return'';
+  if(f.type==='multi'&&values.length>1)return comboNoteText(f,values);
+  const optionNotes=f.optionNotes||{};
+  if(values.some(v=>cleanText(optionNotes[v]))){
+    return values.map(v=>applyTemplate(optionNotes[v]||f.note||defaultFieldNote(f),{
+      id:f.id,
+      label:f.label,
+      value:cleanText(v).toLowerCase(),
+      rawValue:v
+    })).filter(Boolean).join(' ');
+  }
+  const val=values.join(', ').toLowerCase();
+  if(!cleanText(val))return'';
+  return applyTemplate(f.note||defaultFieldNote(f),{id:f.id,label:f.label,value:val,rawValue:values.join(', ')});
+}
+function sectionNote(sec){
+  const fields=sec.fields.map(fieldNote).filter(Boolean);
+  if(!fields.length)return'';
+  return applyTemplate(sec.summaryTemplate||'{{title}}: {{fields}}',{title:sec.title,fields:fields.join(' ')});
+}
+function sectionKey(x){return String(x||'').replace(/[^a-zA-Z0-9]+(.)/g,(m,c)=>c.toUpperCase()).replace(/^[A-Z]/,c=>c.toLowerCase())}
+function riskSummary(){
+  return `Risk summary: suicide - ${nv(state.suicideRiskSummary)}; violence - ${nv(state.violenceRiskSummary)}; vulnerability - ${nv(state.vulnerabilityRiskSummary)}.`;
+}
+function selectedOrganicRedFlags(){return displayValue(state.organicRedFlags)||displayValue(state.cognitiveRedFlags)||'none recorded'}
+function selectedGuides(){return templateGuides().filter(g=>guideReminders.includes(g.id))}
+function guideNote(){
+  const notes=selectedGuides().map(g=>g.note);
+  return notes.length?`Reference guide reminders: ${notes.join(' ')}`:'';
+}
+function gen(){
+  const notes=sections.map(sectionNote).filter(Boolean);
+  const guide=guideNote();
+  if(guide)notes.push(guide);
+  const m={sections:notes.join('\n\n'),riskSummary:riskSummary(),organicRedFlags:selectedOrganicRedFlags()};
+  sections.forEach(sec=>{m[sectionKey(sec.title)]=sectionNote(sec);sec.fields.forEach(f=>m[f.id]=displayValue(state[f.id]))});
+  output.value=applyTemplate(noteTemplate,m);
+  renderNav();
+}
+function renderGuides(){
+  const guides=templateGuides();
+  quickGuides.innerHTML=guides.length?guides.map((g,i)=>{
+    const added=guideReminders.includes(g.id);
+    const tags=g.tags.map(t=>`<span class="flag">${esc(t)}</span>`).join('');
+    const flow=g.flow.map(t=>`<span>${esc(t)}</span>`).join('');
+    const bullets=g.bullets.map(b=>`<li>${esc(b)}</li>`).join('');
+    const document=g.document?.length?`<div class="guideBlock"><div class="guideBlockTitle">Document in the letter</div><ul>${g.document.map(b=>`<li>${esc(b)}</li>`).join('')}</ul></div>`:'';
+    const phrases=g.phrases?.length?`<div class="guideBlock"><div class="guideBlockTitle">Useful wording</div>${g.phrases.map(p=>`<div class="guidePhrase">${esc(p)}</div>`).join('')}</div>`:'';
+    const source=g.url?`<a href="${esc(g.url)}" target="_blank" rel="noopener">${esc(g.source)}</a>`:esc(g.source);
+    return `<details class="guide" ${i===0?'open':''}>
+      <summary>${esc(g.title)} ${added?'<span class="guideAdded">in note</span>':''}</summary>
+      <div class="guideBody">
+        <div class="guideMeta">${tags}</div>
+        <div class="guideFlow" aria-hidden="true">${flow}</div>
+        <ul>${bullets}</ul>
+        ${document}
+        ${phrases}
+        <div class="guideActions">
+          <button class="btn small ${added?'secondary':'teal'}" data-guide="${esc(g.id)}">${added?'Remove from note':'Add reminder to note'}</button>
+          <span class="guideSource">${source}</span>
+        </div>
+      </div>
+    </details>`;
+  }).join(''):'<p class="muted" style="margin:0">No quick reference guides have been added to this template yet.</p>';
+  quickGuides.querySelectorAll('[data-guide]').forEach(btn=>btn.onclick=()=>{
+    const gid=btn.dataset.guide;
+    guideReminders=guideReminders.includes(gid)?guideReminders.filter(x=>x!==gid):[...guideReminders,gid];
+    gen();renderGuides();
+  });
+}
+function hasAnswer(sec){return sec.fields.some(f=>cleanText(displayValue(state[f.id])))}
+function addAnswer(f,value){
+  const v=cleanText(value);
+  if(!v)return;
+  f.options=f.options||[];
+  if(!f.options.includes(v))f.options.push(v);
+  f.optionNotes=f.optionNotes||{};
+  f.optionNotes[v]=f.optionNotes[v]||applyTemplate(f.note||defaultFieldNote(f),{id:f.id,label:f.label,value:v.toLowerCase(),rawValue:v});
+  saveSections();
+  render(true);
+}
+function optionNoteText(f,o){
+  return f.optionNotes?.[o]||applyTemplate(f.note||defaultFieldNote(f),{id:f.id,label:f.label,value:o.toLowerCase(),rawValue:o});
+}
+function generatedPreview(f){
+  const values=noteValues(f);
+  if(f.type==='multi'&&values.length>1)return comboNoteText(f,values);
+  if(values.length===1)return optionNoteText(f,values[0]);
+  return (f.options||[]).slice(0,2).map(o=>optionNoteText(f,o)).join(' ');
+}
+function comboNoteEditor(f){
+  const values=noteValues(f);
+  if(f.type!=='multi'||values.length<2)return'';
+  const key=comboKeyFor(f,values);
+  return `<div class="wide blockEditor">
+    <div class="label">Generated wording for this selected combination</div>
+    <p class="muted" style="margin:0 0 8px;font-size:12px">${esc(orderedValues(f,values).join(' + '))}</p>
+    <textarea data-combo-note="${esc(key)}">${esc(comboNoteText(f,values))}</textarea>
+    <p class="muted" style="margin:6px 0 0;font-size:12px">This sentence is used only when this exact combination of answers is selected.</p>
+  </div>`;
+}
+function optionNoteEditor(f){
+  const options=f.options||[];
+  if(!options.length)return'<p class="muted wide" style="margin:0;font-size:13px">Text and short-answer fields use the main generated note wording above.</p>';
+  f.optionNotes=f.optionNotes||{};
+  return `<div class="wide"><div class="label">Generated wording for each answer</div><div class="optionWordings">
+    ${options.map(o=>`<div class="optionWording">
+      <div class="optionName">${esc(o)}</div>
+      <textarea data-option-note="${esc(o)}">${esc(optionNoteText(f,o))}</textarea>
+    </div>`).join('')}
+  </div>${comboNoteEditor(f)}<div class="reference" style="margin-top:8px"><strong>Selected-answer preview:</strong> ${esc(generatedPreview(f)||'Select answers to preview combined wording.')}</div><p class="muted" style="margin:6px 0 0;font-size:12px">Use {{value}} for the selected answer in lowercase, or {{rawValue}} for the original capitalisation.</p></div>`;
+}
+function blockEditorList(f){
+  const blocks=Array.isArray(f.contentBlocks)?f.contentBlocks:legacyBlocks(f);
+  f.contentBlocks=blocks;
+  return `<div class="wide"><div class="label">Clinical notes, interview prompts and reference guidance around this answer set</div>
+    <div class="row" style="justify-content:flex-start;margin-bottom:8px">
+      <button class="btn small secondary" data-a="addBlock" data-type="clinical" data-pos="after">Add clinical note below</button>
+      <button class="btn small secondary" data-a="addBlock" data-type="interview" data-pos="after">Add interview prompts below</button>
+      <button class="btn small secondary" data-a="addBlock" data-type="reference" data-pos="after">Add reference below</button>
+    </div>
+    <div class="blockList">${blocks.length?blocks.map((b,bi)=>`<div class="blockEditor" data-block="${bi}">
+      <div class="editGrid">
+        <label>Type<select data-bk="type"><option value="clinical" ${b.type==='clinical'?'selected':''}>Clinical note</option><option value="interview" ${b.type==='interview'?'selected':''}>Interview prompts</option><option value="reference" ${b.type==='reference'?'selected':''}>Reference-only guidance</option></select></label>
+        <label>Placement<input value="Below answers" disabled></label>
+        <label class="wide">Heading<input data-bk="title" value="${esc(b.title||blockTitle(b.type))}"></label>
+        <label class="wide">Text<textarea data-bk="body" placeholder="${b.type==='interview'?'One prompt per line':'Guidance text'}">${esc(b.body||'')}</textarea></label>
+      </div>
+      <div class="row" style="justify-content:flex-start;margin-top:8px">
+        <button class="btn small secondary" data-a="saveBlock" data-bi="${bi}">Save block</button>
+        <button class="btn small secondary" data-a="blockUp" data-bi="${bi}">Move up</button>
+        <button class="btn small secondary" data-a="blockDown" data-bi="${bi}">Move down</button>
+        <button class="btn small danger" data-a="delBlock" data-bi="${bi}">Delete block</button>
+      </div>
+    </div>`).join(''):'<p class="muted" style="margin:0;font-size:13px">No guidance blocks yet. Add one above or below this answer set.</p>'}</div>
+  </div>`;
+}
+function sectionReferenceEditor(sec){
+  const blocks=sectionBlocks(sec);
+  sec.referenceBlocks=blocks;
+  return `<div class="wide"><div class="label">Reference-only guidance below this section title</div>
+    <div class="row" style="justify-content:flex-start;margin-bottom:8px">
+      <button class="btn small secondary" data-a="addSectionReference">Add reference below section title</button>
+    </div>
+    <div class="blockList">${blocks.length?blocks.map((b,bi)=>`<div class="blockEditor" data-section-block="${bi}">
+      <div class="editGrid">
+        <label class="wide">Heading<input data-sbk="title" value="${esc(b.title||'Reference-only guidance')}"></label>
+        <label class="wide">Text<textarea data-sbk="body" placeholder="Reference-only guidance text">${esc(b.body||'')}</textarea></label>
+      </div>
+      <div class="row" style="justify-content:flex-start;margin-top:8px">
+        <button class="btn small secondary" data-a="saveSectionReference" data-bi="${bi}">Save reference</button>
+        <button class="btn small secondary" data-a="sectionReferenceUp" data-bi="${bi}">Move up</button>
+        <button class="btn small secondary" data-a="sectionReferenceDown" data-bi="${bi}">Move down</button>
+        <button class="btn small danger" data-a="delSectionReference" data-bi="${bi}">Delete reference</button>
+      </div>
+    </div>`).join(''):'<p class="muted" style="margin:0;font-size:13px">No section guidance yet. Add a reference block below this section title.</p>'}</div>
+  </div>`;
+}
+function saveFeedback(btn,msg='Saved'){
+  if(btn){btn.classList.add('savedFlash');setTimeout(()=>btn.classList.remove('savedFlash'),650)}
+  setToast(msg);
+}
+function fieldEditor(si,fi,f){
+  const d=document.createElement('div');
+  d.className='editTools';
+  d.innerHTML=`<div class="editGrid">
+    <label>Label<input data-k="label" value="${esc(f.label)}"></label>
+    <label>Type<select data-k="type"><option>multi</option><option>single</option><option>short</option><option>text</option></select></label>
+    <label class="wide">Answer options, comma-separated<input data-k="options" value="${esc((f.options||[]).join(', '))}"></label>
+    <label class="wide">Generated note wording<textarea data-k="note">${esc(f.note||defaultFieldNote(f))}</textarea></label>
+    ${optionNoteEditor(f)}
+    ${blockEditorList(f)}
+    <label class="wide">Flags, comma-separated<input data-k="flags" value="${esc((f.flags||[]).join(', '))}"></label>
+  </div><div class="row" style="justify-content:flex-start;margin-top:8px"><button class="btn small" data-a="save">Save field</button><button class="btn small danger" data-a="del">Delete</button></div>`;
+  d.querySelector('[data-k=type]').value=f.type;
+  d.onclick=e=>{
+    const a=e.target.dataset.a;if(!a)return;
+    if(a==='del'&&confirm('Delete field?'))sections[si].fields.splice(fi,1);
+    if(a==='addBlock'){
+      f.contentBlocks=f.contentBlocks||[];
+      f.contentBlocks.push(makeBlock(e.target.dataset.type,e.target.dataset.pos));
+      saveFeedback(e.target,'Guidance block added');
+    }
+    if(a==='saveBlock'){
+      const bi=Number(e.target.dataset.bi),box=d.querySelector(`[data-block="${bi}"]`),b=f.contentBlocks[bi];
+      if(b&&box){b.type=box.querySelector('[data-bk=type]').value;b.position='after';b.title=box.querySelector('[data-bk=title]').value||blockTitle(b.type);b.body=box.querySelector('[data-bk=body]').value;saveFeedback(e.target,'Guidance block saved')}
+    }
+    if(a==='blockUp'){const bi=Number(e.target.dataset.bi);if(bi>0){const b=f.contentBlocks.splice(bi,1)[0];f.contentBlocks.splice(bi-1,0,b)}}
+    if(a==='blockDown'){const bi=Number(e.target.dataset.bi);if(bi<f.contentBlocks.length-1){const b=f.contentBlocks.splice(bi,1)[0];f.contentBlocks.splice(bi+1,0,b)}}
+    if(a==='delBlock'&&confirm('Delete this guidance block?'))f.contentBlocks.splice(Number(e.target.dataset.bi),1);
+    if(a==='save'){
+      f.label=d.querySelector('[data-k=label]').value||f.label;
+      f.type=d.querySelector('[data-k=type]').value;
+      f.options=d.querySelector('[data-k=options]').value.split(',').map(x=>x.trim()).filter(Boolean);
+      f.note=d.querySelector('[data-k=note]').value||defaultFieldNote(f);
+      f.optionNotes={};
+      d.querySelectorAll('[data-option-note]').forEach(el=>{if(cleanText(el.value))f.optionNotes[el.dataset.optionNote]=el.value});
+      f.comboNotes=f.comboNotes||{};
+      d.querySelectorAll('[data-combo-note]').forEach(el=>{if(cleanText(el.value))f.comboNotes[el.dataset.comboNote]=el.value});
+      f.help='';f.info='';f.prompts=[];f.reference='';
+      f.flags=d.querySelector('[data-k=flags]').value.split(',').map(x=>x.trim()).filter(Boolean);
+      saveFeedback(e.target,'Answer set saved');
+    }
+    saveSections();render(true);
+  };
+  return d;
+}
+function sectionEditor(si,sec){
+  const t=document.createElement('div');
+  t.className='editTools';
+  t.innerHTML=`<div class="editGrid">
+    <label>Section title<input id="st${si}" value="${esc(sec.title)}"></label>
+    <label>Helper text<input id="sh${si}" value="${esc(sec.helper||'')}"></label>
+    <label class="wide">Section note format<textarea id="sf${si}">${esc(sec.summaryTemplate||'{{title}}: {{fields}}')}</textarea></label>
+    ${sectionReferenceEditor(sec)}
+  </div><div class="row" style="justify-content:flex-start;margin-top:8px"><button class="btn small" data-a="save">Save section</button><button class="btn small secondary" data-a="add">Add field</button><button class="btn small secondary" data-a="up">Move up</button><button class="btn small secondary" data-a="down">Move down</button><button class="btn small danger" data-a="del">Delete section</button></div>`;
+  t.onclick=e=>{
+    const a=e.target.dataset.a;if(!a)return;
+    if(a==='save'){sec.title=document.getElementById('st'+si).value||sec.title;sec.helper=document.getElementById('sh'+si).value;sec.summaryTemplate=document.getElementById('sf'+si).value;sec.reference='';saveFeedback(e.target,'Section saved')}
+    if(a==='addSectionReference'){sec.referenceBlocks=sec.referenceBlocks||[];sec.referenceBlocks.push({id:id('reference'),type:'reference',position:'after',title:'Reference-only guidance',body:''});saveFeedback(e.target,'Reference added')}
+    if(a==='saveSectionReference'){
+      const bi=Number(e.target.dataset.bi),box=t.querySelector(`[data-section-block="${bi}"]`),b=sec.referenceBlocks[bi];
+      if(b&&box){b.type='reference';b.position='after';b.title=box.querySelector('[data-sbk=title]').value||'Reference-only guidance';b.body=box.querySelector('[data-sbk=body]').value;saveFeedback(e.target,'Reference saved')}
+    }
+    if(a==='sectionReferenceUp'){const bi=Number(e.target.dataset.bi);if(bi>0){const b=sec.referenceBlocks.splice(bi,1)[0];sec.referenceBlocks.splice(bi-1,0,b)}}
+    if(a==='sectionReferenceDown'){const bi=Number(e.target.dataset.bi);if(bi<sec.referenceBlocks.length-1){const b=sec.referenceBlocks.splice(bi,1)[0];sec.referenceBlocks.splice(bi+1,0,b)}}
+    if(a==='delSectionReference'&&confirm('Delete this section reference?'))sec.referenceBlocks.splice(Number(e.target.dataset.bi),1);
+    if(a==='add'){const l='New answer set';sec.fields.push({id:id(l),label:l,type:'multi',options:['Option 1'],note:'{{label}}: {{value}}.'})}
+    if(a==='up'&&si>0){sections.splice(si,1);sections.splice(si-1,0,sec)}
+    if(a==='down'&&si<sections.length-1){sections.splice(si,1);sections.splice(si+1,0,sec)}
+    if(a==='del'&&confirm('Delete section?'))sections.splice(si,1);
+    saveSections();render(true);
+  };
+  return t;
+}
+function renderTemplateHub(){
+  const current=activeTemplate();
+  templateTitle.textContent=current.title;
+  templateSubtitle.textContent=current.subtitle;
+  document.title=current.title;
+  templateGrid.innerHTML=Object.values(TEMPLATES).map(t=>{
+    const active=t.id===activeTemplateId;
+    return `<button class="templateCard ${active?'active':''}" type="button" data-template="${esc(t.id)}" aria-pressed="${active}">
+      <div class="templateCardTitle"><span>${esc(t.shortTitle)}</span>${active?'<span class="pill">open</span>':''}</div>
+      <p>${esc(t.description)}</p>
+      <div class="templateMeta">${t.tags.map(tag=>`<span class="flag">${esc(tag)}</span>`).join('')}</div>
+    </button>`;
+  }).join('');
+  templateGrid.querySelectorAll('[data-template]').forEach(btn=>btn.onclick=()=>switchTemplate(btn.dataset.template));
+}
+function switchTemplate(nextId){
+  if(!TEMPLATES[nextId]||nextId===activeTemplateId)return;
+  activeTemplateId=nextId;
+  localStorage.setItem(ACTIVE_TEMPLATE_KEY,activeTemplateId);
+  sections=loadSections();
+  noteTemplate=loadTemplate();
+  guideReminders=[];
+  edit=false;
+  editModeBtn.textContent='Edit mode';
+  noteTemplateBox.value=noteTemplate;
+  render(false);
+  setToast(`${activeTemplate().shortTitle} opened`);
+}
+function render(keep=false){
+  const old=keep?state:{};
+  form.innerHTML='';
+  resetState();
+  Object.assign(state,old);
+  document.body.classList.toggle('editing',edit);
+  document.body.classList.toggle('studyMode',studyMode);
+  editBar.classList.toggle('on',edit);
+  renderTemplateHub();
+  sections.forEach((sec,si)=>{
+    const selected=hasAnswer(sec);
+    const c=document.createElement('div');
+    c.className='card';
+    c.id='sec_'+si;
+    c.innerHTML=`<div class="sectionHead"><div><h2>${esc(sec.title)}</h2>${sec.helper?`<p class="help">${esc(sec.helper)}</p>`:''}</div><div class="sectionTools">${selected?'<span class="pill">selected</span>':''}</div></div>`;
+    sectionBlocks(sec).forEach(b=>c.insertAdjacentHTML('beforeend',renderContentBlock(b)));
+    if(edit)c.appendChild(sectionEditor(si,sec));
+    sec.fields.forEach((f,fi)=>{
+      const d=document.createElement('div');
+      d.className='field';
+      d.innerHTML=`<div class="label">${esc(f.label)} ${edit?'<span class="pill">editable</span>':''}</div>`;
+      fieldBlocks(f,'before').forEach(b=>d.insertAdjacentHTML('beforeend',renderContentBlock(b)));
+      if(f.type==='text'||f.type==='short'){
+        const el=document.createElement(f.type==='text'?'textarea':'input');
+        el.placeholder=f.type==='text'?'Add clinical detail...':'Type here...';
+        el.value=state[f.id]||'';
+        el.oninput=e=>{state[f.id]=e.target.value;gen();renderNav()};
+        d.appendChild(el);
+      }else{
+        const chips=document.createElement('div');
+        chips.className='chips';
+        (f.options||[]).forEach(o=>{
+          const b=document.createElement('button');
+          b.className='chip';b.type='button';b.textContent=o;
+          if((Array.isArray(state[f.id])&&state[f.id].includes(o))||state[f.id]===o)b.classList.add('active');
+          b.onclick=()=>{if(f.type==='multi'){const a=state[f.id]||[];state[f.id]=a.includes(o)?a.filter(x=>x!==o):[...a,o]}else state[f.id]=state[f.id]===o?'':o;render(true)};
+          chips.appendChild(b);
+        });
+        d.appendChild(chips);
+        const add=document.createElement('div');
+        add.className='inlineAdd';
+        add.innerHTML='<input placeholder="New answer"><button class="btn small secondary" type="button">Add answer</button>';
+        add.querySelector('button').onclick=()=>addAnswer(f,add.querySelector('input').value);
+        d.appendChild(add);
+      }
+      fieldBlocks(f,'after').forEach(b=>d.insertAdjacentHTML('beforeend',renderContentBlock(b)));
+      if(f.flags&&f.flags.length){const flags=document.createElement('div');flags.className='flagRow';flags.innerHTML=f.flags.map(x=>`<span class="flag ${esc(x)}">${esc(x)}</span>`).join('');d.appendChild(flags)}
+      if(edit)d.appendChild(fieldEditor(si,fi,f));
+      c.appendChild(d);
+    });
+    form.appendChild(c);
+  });
+  if(edit){
+    const add=document.createElement('div');
+    add.className='card';
+    add.innerHTML='<button class="btn" id="addSectionBtn">Add new clinical note section</button>';
+    form.appendChild(add);
+    addSectionBtn.onclick=()=>{sections.push({title:'New clinical note section',helper:'',reference:'',summaryTemplate:'{{title}}: {{fields}}',fields:[]});saveSections();render(true)};
+  }
+  gen();showSug();renderNav();renderGuides();
+}
+function renderNav(){
+  sectionNav.innerHTML='';
+  sections.forEach((sec,si)=>{
+    const count=sec.fields.filter(f=>cleanText(displayValue(state[f.id]))).length;
+    const b=document.createElement('button');
+    b.className='navBtn';b.innerHTML=`<span>${esc(sec.title)}</span><span class="count">${count}</span>`;
+    b.onclick=()=>document.getElementById('sec_'+si)?.scrollIntoView({behavior:'smooth',block:'start'});
+    sectionNav.appendChild(b);
+  });
+}
+function gs(){try{return JSON.parse(readTemplateStorage('suggestions'))||[]}catch{return[]}}
+function ss(a){localStorage.setItem(storageKey('suggestions'),JSON.stringify(a))}
+function showSug(){suggestions.innerHTML='';gs().forEach((x,i)=>{const d=document.createElement('div');d.className='suggestion';d.innerHTML=`${esc(x)}<br><button class="btn small secondary">Remove</button>`;d.querySelector('button').onclick=()=>{const a=gs();a.splice(i,1);ss(a);showSug()};suggestions.appendChild(d)})}
+function setToast(msg){toast.textContent=msg;setTimeout(()=>toast.textContent='',1700)}
+function validateConfig(p){
+  if(!p||typeof p!=='object')throw new Error('Config must be a JSON object.');
+  const next=p.sections||p;
+  if(!Array.isArray(next))throw new Error('Config must include a sections array.');
+  next.forEach((s,i)=>{if(!s.title)throw new Error(`Section ${i+1} is missing a title.`);if(!Array.isArray(s.fields))throw new Error(`${s.title} must include a fields array.`);s.fields.forEach(f=>{if(!f.id||!f.label||!f.type)throw new Error(`${s.title} has a field missing id, label, or type.`)})});
+  return next;
+}
+editModeBtn.onclick=()=>{edit=!edit;editModeBtn.textContent=edit?'Editing on':'Edit mode';render(true)};
+closeEditBtn.onclick=()=>{edit=false;editModeBtn.textContent='Edit mode';render(true)};
+studyModeBtn.onclick=()=>{studyMode=!studyMode;studyModeBtn.textContent=studyMode?'Study Mode on':'Study Mode';render(true);setToast(studyMode?'Study Mode on: guidance visible':'Study Mode off: guidance hidden')};
+addSuggestionBtn.onclick=()=>{const t=suggestionText.value.trim();if(t){const a=gs();a.push(t);ss(a);suggestionText.value='';showSug()}};
+copySuggestionsBtn.onclick=async()=>{await navigator.clipboard.writeText(gs().map((x,i)=>`${i+1}. ${x}`).join('\n')||'No suggestions recorded.');setToast('Suggestions copied')};
+exportBtn.onclick=()=>{configBox.value=JSON.stringify({sections,suggestions:gs(),noteTemplate},null,2);importStatus.textContent='Export ready.'};
+importBtn.onclick=()=>{try{const p=JSON.parse(configBox.value);sections=normalizeSections(validateConfig(p));if(p.suggestions)ss(p.suggestions);if(p.noteTemplate){noteTemplate=p.noteTemplate;saveTemplate();noteTemplateBox.value=noteTemplate}guideReminders=[];saveSections();render(false);importStatus.textContent='Imported successfully.'}catch(e){importStatus.textContent='Import failed: '+e.message}};
+factoryBtn.onclick=()=>{if(confirm(`Reset the ${activeTemplate().shortTitle} structure, note template and meeting suggestions in this browser? Patient answers will also clear.`)){localStorage.removeItem(storageKey('sections'));localStorage.removeItem(storageKey('suggestions'));localStorage.removeItem(storageKey('note_template'));sections=clone(templateDefaults());noteTemplate=activeTemplate().defaultNoteTemplate;guideReminders=[];noteTemplateBox.value=noteTemplate;render(false);setToast('Factory reset complete')}};
+copyBtn.onclick=async()=>{await navigator.clipboard.writeText(output.value);setToast('Note copied')};
+resetAnswersBtn.onclick=()=>{guideReminders=[];render(false)};
+noteTemplateBox.value=noteTemplate;
+noteTemplateBox.oninput=()=>{noteTemplate=noteTemplateBox.value||activeTemplate().defaultNoteTemplate;saveTemplate();gen()};
+resetTemplateBtn.onclick=()=>{if(confirm('Restore the default generated note format?')){noteTemplate=activeTemplate().defaultNoteTemplate;saveTemplate();noteTemplateBox.value=noteTemplate;gen()}};
+render();
+</script>
+</body>
+</html>
