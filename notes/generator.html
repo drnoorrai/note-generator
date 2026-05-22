@@ -30,6 +30,8 @@
     </nav>
   </header>
 
+  <a class="button secondary notes-back" href="index.html">Back to Oval Notes</a>
+
   <section class="hero notes-hero" aria-labelledby="notes-generator-title">
     <div class="hero-main">
       <p class="eyebrow" id="templateEyebrow">Oval Notes</p>
@@ -135,7 +137,9 @@
 <script>
 const LEGACY_KEY='mse_sections_v3',LEGACY_SKEY='mse_suggestions_v1',LEGACY_TKEY='mse_note_template_v1';
 const ACTIVE_TEMPLATE_KEY='note_generator_active_template_v1';
-let activeTemplateId=localStorage.getItem(ACTIVE_TEMPLATE_KEY)||'mse';
+const templateParam=(new URLSearchParams(location.search).get('template')||'').replace(/[_\s]/g,'-').toLowerCase();
+const TEMPLATE_URL_MAP={mse:'mse','mental-state-examination':'mse','chest-pain':'chestPain',chestpain:'chestPain',chest:'chestPain'};
+let activeTemplateId=TEMPLATE_URL_MAP[templateParam]||localStorage.getItem(ACTIVE_TEMPLATE_KEY)||'mse';
 const DEFAULT_NOTE_TEMPLATE=`Mental State Examination:
 
 {{sections}}`;
@@ -701,6 +705,7 @@ const TEMPLATES={
   }
 };
 if(!TEMPLATES[activeTemplateId])activeTemplateId='mse';
+if(TEMPLATE_URL_MAP[templateParam])localStorage.setItem(ACTIVE_TEMPLATE_KEY,activeTemplateId);
 let sections=loadSections(),state={},edit=false,studyMode=false,noteTemplate=loadTemplate(),guideReminders=[];
 const fieldIndex=()=>sections.flatMap((s,si)=>s.fields.map((f,fi)=>({section:s,field:f,si,fi})));
 function activeTemplate(){return TEMPLATES[activeTemplateId]||TEMPLATES.mse}
@@ -1164,6 +1169,9 @@ function switchTemplate(nextId){
   if(!TEMPLATES[nextId]||nextId===activeTemplateId)return;
   activeTemplateId=nextId;
   localStorage.setItem(ACTIVE_TEMPLATE_KEY,activeTemplateId);
+  const url=new URL(location.href);
+  url.searchParams.set('template',nextId==='chestPain'?'chest-pain':'mse');
+  history.replaceState(null,'',url);
   sections=loadSections();
   noteTemplate=loadTemplate();
   guideReminders=[];

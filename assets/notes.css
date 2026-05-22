@@ -4,7 +4,8 @@
 
 .notes-hero {
   grid-template-columns: minmax(0, 1fr) 340px;
-  padding-bottom: 20px;
+  gap: 20px;
+  padding: 6px 0 14px;
 }
 
 .notes-hero .hero-main,
@@ -22,19 +23,34 @@
   border-radius: var(--radius-lg);
 }
 
+.notes-hero .hero-main {
+  padding: clamp(28px, 3.5vw, 48px);
+}
+
+.notes-hero .hero-card {
+  padding: 24px;
+}
+
 .notes-hero h1 {
   font-family: "DM Serif Display", Georgia, serif;
   font-weight: 400;
-  font-size: clamp(42px, 6vw, 74px);
-  line-height: .98;
+  font-size: clamp(40px, 4.2vw, 62px);
+  line-height: 1;
+  max-width: 760px;
+}
+
+.notes-hero .hero-main > p:not(.eyebrow) {
+  max-width: 720px;
+  margin-top: 16px;
+  font-size: clamp(17px, 1.45vw, 22px);
 }
 
 .template-state {
   width: min(560px, 100%);
-  margin-top: 26px;
+  margin-top: 22px;
   border: 1px solid var(--teal-mid);
   border-radius: var(--radius-md);
-  padding: 14px 16px;
+  padding: 12px 14px;
   background: var(--teal-light);
 }
 
@@ -62,6 +78,11 @@
   display: grid;
   gap: 10px;
   justify-content: stretch;
+}
+
+.notes-back {
+  width: max-content;
+  margin: 0 0 14px;
 }
 
 .templateHub {
@@ -729,5 +750,9 @@ body:not(.studyMode) .quickRefCard {
   .output {
     min-height: 320px;
     height: 360px;
+  }
+
+  .notes-back {
+    width: 100%;
   }
 }
